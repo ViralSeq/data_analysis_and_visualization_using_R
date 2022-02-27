@@ -1,0 +1,215 @@
+---
+title: "Data analysis and visulization using R"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, results = "asis", warning = F, message = F)
+```
+
+### ***What you can learn from this tutorial?***
+
+#### R basics
+- Understanding the strength and weakness of R. 
+- Install R and RStudio. Manage packages. 
+- data types, functions.
+- Working with data frame. 
+
+#### Make Tables and Plots
+- Use R to summarize data.
+- Plotting your data. 
+- Fine tuning your plots.
+
+#### Data analysis
+- Work with continuous data.
+- Linear regression. 
+- Work with categorical data. 
+- Logistic regression. 
+- Time-to-event data and survival analysis.
+
+#### Bioinformatics
+- `ape` package for reading and analyze sequence data
+- `ggtree` (and supplemental packages) to plot beautiful phylogenetic trees. 
+
+#### Extras
+- Work with missing data. 
+- Export your data. 
+- Version control. 
+
+### ***Why is special about this tutorial?***
+
+- Using biomedical data and cases as examples
+- Use the latest packages and features 
+- A great reference book. [R for Health Data Science](https://argoshare.is.ed.ac.uk/healthyr_book/)
+
+![](https://argoshare.is.ed.ac.uk/healthyr_book/images/healthyr_book_cover_20.png)
+
+
+### ***Examples***
+
+#### 1. Summarizing data and make tables using a simple package
+
+
+Load required libraries
+```{r}
+library(dplyr)
+library(tidyverse)
+library(table1)
+library(knitr)
+library(arsenal)
+library(ggplot2)
+library(patchwork)
+library(tidyr)
+```
+
+
+Read the data from a .csv file as a data frame.
+
+```{r}
+dfall <- read.csv("./data/data.csv", header = TRUE)
+```
+
+
+Quick examine the data. Look at the first 4 records. 
+
+```{r}
+dfall %>% head(4)
+```
+
+
+add labels, relevel some factors
+
+```{r}
+
+
+dfall <- dfall %>% 
+  mutate_at(c("TCS_PR","TCS_RT","TCS_IN", "TCS_V1V3", "PI_RT","PI_V1V3","DIST20_RT", "DIST20_V1V3"), funs(as.numeric)) %>% 
+  mutate(
+  racecat = factor(racecat, levels = c("White", "Black", "Hispanic", "Other/Unkn")),
+  risk2 = factor(risk2, levels = c("MSM", "HET-F", "HET-M", 'PWID-F', 'PWID-M', 'OTHER/UNKN'))
+  )
+
+labels(dfall) <- c(ngscollectyr = 'Year of Diagnosis', 
+                   gender = 'Gender',
+                   racecat = 'Race',
+                   age_cat30 = 'Age ≤ 30y/o',
+                   risk2 = 'Risk factor',
+                   recent_cat = 'Recency Category',
+                   owning_jd_region_fsu = 'Region in NC',
+                   incluster = 'In Clusters',
+                   cd4_value = 'CD4 count (cells/µL)',
+                   vl_log_value = 'Viral Load (Log10 copies/mL)'
+)
+
+```
+
+Summarize the data
+
+
+Table 1. Characteristics of sequenced participants with new diagnoses in NC from 2018-2021.
+
+
+```{r}
+
+dfall %>% 
+tableby(ngscollectyr ~ recent_cat + gender + racecat + age_cat30 + risk2 + owning_jd_region_fsu + incluster + cd4_value + vl_log_value, 
+       data = .,cat.simplify=F, numeric.stats= c("median","q1q3"), test=T) %>% 
+ summary(.,digits=1, digits.count=0, digits.pct=1, digits.p=2, title=NULL)
+
+
+```
+
+
+#### 2. Plot TCS number at different regions by recency categories. 
+
+```{r, fig.width = 10, fig.height= 6}
+df_tcs <- dfall %>% select(c(
+                             "recent_cat",
+                             "TCS_RT",
+                             "TCS_PR",
+                             "TCS_IN",
+                             "TCS_V1V3"
+                             )
+)
+
+tcs_chart <- function(cat, title) {
+  df_tcs %>% 
+  ggplot(aes(x = recent_cat, y = cat)) + 
+  geom_violin() + 
+  geom_jitter(aes(colour = recent_cat), size = 1, alpha = 0.5) + 
+  scale_y_continuous(name = title, trans = 'log10') +
+  labs(x = "Recency Category", color = "Recency Category") + 
+  theme_bw() + 
+    theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+}
+
+p1 <- tcs_chart(df_tcs$TCS_PR, "TCS# PR")
+p2 <- tcs_chart(df_tcs$TCS_IN, "TCS# IN")
+p3 <- tcs_chart(df_tcs$TCS_RT, "TCS# RT")
+p4 <- tcs_chart(df_tcs$TCS_V1V3, "TCS# V1V3")
+
+(p1 | p2) /
+  (p3 | p4)
+
+
+```
+
+
+#### 3. Performing logistic regression and plot the values using `ggplot2` and `finalfit`.
+
+```{r, warning = F}
+library(finalfit)
+library(ggplot2)
+
+dfall_logic <- dfall %>% filter(dx_ngs_cat=="<30 days" & recent_cat!="Indeterminant" ) %>% 
+                            mutate(Recenct_Infection = ifelse(recent_cat == "Recent", 1, 0), 
+                                   ngscollectyr = as.character(ngscollectyr),
+                                   Age = ifelse(age_cat30 == "Yes", "≤30 y/o", ">30 y/o"),
+                                   gender = ifelse(gender == "Male", "M", gender),
+                                   gender = ifelse(gender == "Female", "F", gender),
+                                   gender = ifelse(gender == "Transgender Female", "Trans. F", gender),
+                                   gender = ifelse(gender == "Transgender Male", "Trans. M", gender),
+                                   gender = relevel(as.factor(gender), ref = "M"))
+
+
+names(dfall_logic)[names(dfall_logic) == "owning_jd_region_fsu"] <- "Region"
+names(dfall_logic)[names(dfall_logic) == "ngscollectyr"] <- "Year"
+names(dfall_logic)[names(dfall_logic) == "gender"] <- "Gender"
+names(dfall_logic)[names(dfall_logic) == "racecat"] <- "Race"
+names(dfall_logic)[names(dfall_logic) == "incluster"] <- "Cluster"
+
+explanatory = c("Race", "Gender", "Age", "Year", "Region", "Cluster")
+dependent = "Recenct_Infection"
+dfall_logic %>%
+  finalfit(dependent, explanatory, metrics=TRUE) -> t2
+t2 %>% knitr::kable()
+
+
+dfall_logic %>% 
+  or_plot(dependent, explanatory,
+          table_text_size=3.5, 
+          title_text_size=14,
+          dependent_label = "Recent Infection",
+          #breaks = c(0.1,0.5,1,2,3,4,5,6),
+          column_space = c(-0.5, 0, 0.5),
+          plot_opts=list(xlab("OR, 95% CI"), 
+                         theme(axis.title = element_text(size=12),
+                               legend.position = "right",
+                               legend.title = element_blank(),
+                               legend.justification = c("right", "top")
+                               ))) # + guide_legend(title="my awesome title")
+```
+
+#### 4. Making beautiful phylogenetic trees. 
+
+Example Tree 1
+![Example trees 1](./img/msaplot-1.png)
+
+
+Example Tree 2
+![Example tree 2](./img/treeandleaf.png)
+

@@ -103,6 +103,8 @@ library(tidyverse)
 
 - Set up your github, and fork the workshop from Github. https://github.com/ViralSeq/data_analysis_and_visulization_using_R
 
+- Clone the repo to your local computer. 
+
 ## Homework 
 
 - Download R, RStudio, Github Desktop

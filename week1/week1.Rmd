@@ -1,30 +1,112 @@
 ---
-title: "week1"
+title: "Week1"
 author: "Shuntai Zhou"
 date: '2022-02-27'
 output: html_document
+
 ---
 
 ```{r setup, include=FALSE, warning=F, message=F}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = T, results = "asis", warning = F)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+## Content
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+- What is R?
+- What is special about R?
+- What are the limitations of R?
+- Install R
+- Install RStudio
+- Manage Packages
+- Github
+- Homework
 
-```{r cars}
-summary(cars)
+
+<img src="img/Rlogo.png" alt="python" width="100"/>
+
+
+## What is R?
+
+- R is a programming language for statistical computing and graphics.
+- An open-source implementation of the S programming language
+- Supported by a large community which provides packages for almost any kinds of applications.
+
+
+## What is special about R?
+
+- R is versatile and powerful - use it for
+  - graphics;
+  - all the statistical tests you can dream of;
+  - machine learning and deep learning;
+  - automated reports;
+  - websites (personally don't recommend);
+  - even books.
+- R scripts can be reused - gives you efficiency and reproducibility.
+- It is free to use by anyone, anywhere.
+
+
+## What are the limiations of R?
+
+- Full programming languages, harder to learn
+- Heavily rely on packages, learning curve
+- Memory and speed
+
+## What are the alternatives for R?
+
+- Python (machine learning)
+<img src="img/python.png" alt="python" width="30"/>
+- Julia (attempt to be the successor to R)
+<img src="img/Julia.png" alt="Julia" width="30"/>
+- Go (big data)
+<img src="img/Go.jpg" alt="Go" width="30"/>
+
+## Install R
+
+Download R from the official website. https://www.r-project.org/
+
+Choose your OS (and architecture)
+
+## Install RStudio
+
+- Free software to make R easier
+- Integrated development environment (IDE)
+- Install at https://www.rstudio.com/
+
+## Install libraries/packages
+
+Scripting in R heavily relys on libraries/packages
+
+#### How to install?
+
+1. Use `install.packages()` command in the console. Make sure the package name is in the '', or "". 
+2. Or go to "Tools->Install Packages..." in RStudio.
+
+#### How to call the packages in your script?
+
+Use `library()` in your script. Make sure you load the library before you use any functions from the package.
+
+```{r, load tidyverse}
+
+library(tidyverse)
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+## Install Github desktop
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
+- Github desktop is the most user friendly way to use `Git` for version control
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+- Install at https://desktop.github.com/
+
+- All the documentations, scripts and data can be accessed from my Github page. 
+
+- Set up your github, and fork the workshop from Github. https://github.com/ViralSeq/data_analysis_and_visulization_using_R
+
+## Homework 
+
+- Download R, RStudio, Github Desktop
+- Fork workshop materials at https://github.com/ViralSeq/data_analysis_and_visulization_using_R
+- Install package `tidyverse`.
+- Knit the "/week1/homework/week1_homework.Rmd" file to a .html file. 
+

@@ -1,0 +1,28 @@
+---
+title: "Week1 Homework"
+output: html_document
+
+---
+
+```{r setup, include=FALSE, warning=F, message=F}
+knitr::opts_chunk$set(echo = T, results = "asis", warning = F)
+```
+
+#### load `tidyverse` package
+```{r}
+library(tidyverse)
+```
+
+#### load 'mtcar' dataset, and plot using ggplot
+
+```{r}
+data(mtcar)
+density_plot <- ggplot(mtcars, aes(x = qsec, fill=as.factor(cyl))) +
+  geom_density(alpha=0.4) +
+    labs(title = "Distribution of Quarter Mile Time",
+       x = "Quarter Mile Time",
+       y = "Probability Density") +
+  guides(fill=guide_legend(title="Number of\nCylinders\n"))
+density_plot + theme_bw()
+
+```

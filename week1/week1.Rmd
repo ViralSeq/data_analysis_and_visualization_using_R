@@ -1,7 +1,7 @@
 ---
 title: "Week1"
 author: "Shuntai Zhou"
-date: '2022-02-27'
+date: '2022-03-01'
 output: html_document
 
 ---
@@ -49,6 +49,7 @@ knitr::opts_chunk$set(echo = T, results = "asis", warning = F)
 ## What are the limiations of R?
 
 - Full programming languages, harder to learn
+- Not the best choice as the first computer language to learn
 - Heavily rely on packages, learning curve
 - Memory and speed
 

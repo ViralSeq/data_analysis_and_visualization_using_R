@@ -1,4 +1,4 @@
-# Data analysis and visulization using R
+# Data analysis and visualization using R
 
 ## Week 0: Preview
 

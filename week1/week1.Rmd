@@ -101,14 +101,14 @@ library(tidyverse)
 
 - All the documentations, scripts and data can be accessed from my Github page. 
 
-- Set up your github, and fork the workshop from Github. https://github.com/ViralSeq/data_analysis_and_visulization_using_R
+- Set up your github, and fork the workshop from Github. https://github.com/ViralSeq/data_analysis_and_visualization_using_R
 
 - Clone the repo to your local computer. 
 
 ## Homework 
 
 - Download R, RStudio, Github Desktop
-- Fork workshop materials at https://github.com/ViralSeq/data_analysis_and_visulization_using_R
+- Fork workshop materials at https://github.com/ViralSeq/data_analysis_and_visualization_using_R
 - Install package `tidyverse`.
 - Knit the "/week1/homework/week1_homework.Rmd" file to a .html file. 
 

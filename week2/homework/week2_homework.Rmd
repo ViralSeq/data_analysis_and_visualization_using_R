@@ -1,0 +1,51 @@
+---
+title: "Week 2 homework"
+output: html_document
+date: '2022-03-08'
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Goals. 
+- Read `csv` files using `read_csv`
+- Join tibbles/dataframes
+- Use `mutate` to change values in the table, use `filter` to select rows that with match the criteria
+
+
+### In the following code chunk, read "CD4.csv" as tibble "CD4" and "viral_load.csv" as tibble "vl" in the "homework" folder. Make sure load package `tidyverse` first. 
+```{r}
+library(tidyverse)
+cd4 <- read_csv("CD4.csv")
+vl <- read_csv("viral_load.csv")
+```
+
+### In the following code chunk, join the two tables that you generated from the two .csv files by matching 'study_id'. The joined_table will only have participants with both 'CD4' value and 'viral_load' value.  Which join function should be used? `full_join`, `left_join`, `right_join` or `inner_join`? Put the number of rows. 
+
+```{r}
+joined_table <- inner_join(cd4, vl, by='study_id')
+```
+### calculate the mean CD4 and viral load in the joined_table using funciton `mean()`, the viral load data will be presented as log10, and rounded to two decimals. Hint: use function `log10()` and `round()`.
+
+```{r}
+joined_table$CD4 %>% mean()
+joined_table$viral_load %>% mean() %>% log10() %>% round(2)
+```
+
+### In the joined table, create a new column called "age_at_collect", calculated from "year_of_birth" and "year_of_collection".
+
+```{r}
+joined_table <- joined_table %>% mutate(
+  age_at_collection = year_of_collection - year_of_birth
+)
+```
+
+### Generate a new table called 'filtered_table', in which only males and age younger than 40 y/o at the time of collection will be stored. 
+
+```{r}
+filtred_table <- joined_table %>% filter(sex == 'M' & age_at_collection < 40)
+```
+
+
+

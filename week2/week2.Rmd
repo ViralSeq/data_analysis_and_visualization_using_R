@@ -13,7 +13,7 @@ The aim of this module is to familiarize you with how R works and how to read in
 - Open GitHub Desktop
 - Click "Current Branch" (should be "Main")
 - You will see a branch of "upstream/main". Select branch "Main", click "Choose a branch to Merge into **Main**".
-- Choose "upstream/main", merge into your own "Main". After merging, click "PushFetch Origin". 
+- Choose "upstream/main", merge into your own "Main". After merging, click "Push Origin". 
 
 
 # Getting help

@@ -374,6 +374,17 @@ pre code {
 to read in and apply basic manipulations on your data. Here, we will be
 working with similar but slightly shorter version of the Global Burden
 of Disease dataset than we did for the bar plots.</p>
+<div id="sync-your-repo" class="section level1">
+<h1>Sync your Repo</h1>
+<ul>
+<li>Open GitHub Desktop</li>
+<li>Click “Current Branch” (should be “Main”)</li>
+<li>You will see a branch of “upstream/main”. Select branch “Main”,
+click “Choose a branch to Merge into <strong>Main</strong>”.</li>
+<li>Choose “upstream/main”, merge into your own “Main”. After merging,
+click “Push Origin”.</li>
+</ul>
+</div>
 <div id="getting-help" class="section level1">
 <h1>Getting help</h1>
 <p>RStudio has a built in Help tab. To use the Help tab, move your
@@ -424,7 +435,7 @@ the <code>Values</code> section.</p>
 <pre class="r"><code>b = 2</code></pre>
 <p>Lets now add <code>a</code> and <code>b</code> together to create the
 object <code>c</code></p>
-<pre class="r"><code>c = a + b 
+<pre class="r"><code>c = a + b
 
 #Print the value of c
 c</code></pre>
@@ -463,9 +474,7 @@ different file formats.</p>
 <pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
-<pre class="r"><code>library(here) # use the here package for the path issue between mac/linux and windows OS. </code></pre>
-<pre><code>## here() starts at /Users/shuntaiz/Documents/work/R/R_class/data_analysis_and_visualization_using_R</code></pre>
-<pre class="r"><code>mydata = read_csv(here(&quot;week2&quot;, &quot;data&quot;, &quot;global_burden_disease_short.csv&quot;))</code></pre>
+<pre class="r"><code>mydata = read_csv(&quot;global_burden_disease_short.csv&quot;)</code></pre>
 <pre><code>## Rows: 18 Columns: 3</code></pre>
 <pre><code>## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -575,7 +584,7 @@ mydata %&gt;% head()</code></pre>
 assigned the word “Injuries” to the whole of column cause (over-writing
 the Communicable and Non-communicable values), we need to read in the
 original data again:</p>
-<pre class="r"><code>mydata = read_csv(here(&quot;week2&quot;, &quot;data&quot;, &quot;global_burden_disease_short.csv&quot;))</code></pre>
+<pre class="r"><code>mydata = read_csv(&quot;global_burden_disease_short.csv&quot;)</code></pre>
 <pre><code>## Rows: 18 Columns: 3
 ## ── Column specification ────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
@@ -602,7 +611,7 @@ obscure, but the comparisons operators (==, !=, &lt;, &gt;, &lt;=,
 &gt;=) are actually used for filtering data. For example, if we wanted
 to select the years in the Global Burden of disease study after 2000
 (and including 2000) we could type the following:</p>
-<pre class="r"><code>mydata %&gt;% 
+<pre class="r"><code>mydata %&gt;%
   filter(year &gt;= 2000)</code></pre>
 <pre><code>## # A tibble: 12 × 3
 ##    cause                      year    deaths
@@ -622,7 +631,7 @@ to select the years in the Global Burden of disease study after 2000
 <p>Just sending mydata into a filter gets the result printed out. To
 save it in the Environment, we also need to use the assignment
 operator:</p>
-<pre class="r"><code>mydata_filtered &lt;- mydata %&gt;% 
+<pre class="r"><code>mydata_filtered &lt;- mydata %&gt;%
   filter(year &gt;= 2000)</code></pre>
 <p>How would you change the above code to only include years greater
 than 2000 (so not including 2000 itself too)?</p>
@@ -639,14 +648,14 @@ greater than 2000. Save it into a variable called
 <p>This ‘|’ means OR and ‘&amp;’ means AND.</p>
 <p>From <code>mydata</code>, select the lines where year is either
 <em>1990 or 2013</em> and cause is “Communicable diseases”:</p>
-<pre class="r"><code>new_data_selection = mydata %&gt;% 
+<pre class="r"><code>new_data_selection = mydata %&gt;%
   filter( (year == 1990 | year == 2013) &amp; cause == &quot;Communicable diseases&quot;)
 
 # or we can get rid of the extra brackets around the years
 # by moving cause into a new filter on a new line:
 
-new_data_selection = mydata %&gt;% 
-  filter(year == 1990 | year == 2013) %&gt;% 
+new_data_selection = mydata %&gt;%
+  filter(year == 1990 | year == 2013) %&gt;%
   filter(cause == &quot;Communicable diseases&quot;)</code></pre>
 </div>
 </div>
@@ -713,7 +722,7 @@ character (<code>chr</code>), whereas <code>year</code> and
 <h1>Adding columns to tibbles</h1>
 <p>The function for adding new columns (or making changes to existing
 ones) to a tibble is called <code>mutate()</code>:</p>
-<pre class="r"><code>mydata %&gt;% 
+<pre class="r"><code>mydata %&gt;%
   mutate(new = 1:18)</code></pre>
 <pre><code>## # A tibble: 18 × 4
 ##    cause                      year    deaths   new
@@ -739,7 +748,7 @@ ones) to a tibble is called <code>mutate()</code>:</p>
 <p>Conversely, if we want to delete a specific variable or column we use
 <code>select()</code> with the dropped variable subtracted.</p>
 <p>The following code however, will return an error:</p>
-<pre class="r"><code>mydata %&gt;% 
+<pre class="r"><code>mydata %&gt;%
   select(-new)</code></pre>
 <p>The reason for this error is that when we added the new column using
 <code>mutate(new = 1:18)</code> it got printed, but not saved back to
@@ -779,9 +788,9 @@ the tibble.</p>
 the mutate function is the name of the variable (this can be new or
 pre-existing) and where the new data should come from.</p>
 <pre class="r"><code># Worked example - adding two new columns to mydata using mutate():
-mydata = mydata %&gt;% 
+mydata = mydata %&gt;%
   mutate(years_from_1990 = year-1990,
-         deaths_millions = deaths/1000000) </code></pre>
+         deaths_millions = deaths/1000000)</code></pre>
 <div id="exercise-6" class="section level2">
 <h2>Exercise 6</h2>
 <p>Re-write <code>mydata$new = 1</code> using <code>mutate()</code>.</p>
@@ -1007,14 +1016,14 @@ lm(deaths ~ year, data = mydata) %&gt;% summary()</code></pre>
 <h2>When pipe sends data to the wrong place</h2>
 <p>Note that our usual way of doing things with the pipe would not work
 here:</p>
-<pre class="r"><code>mydata %&gt;% 
+<pre class="r"><code>mydata %&gt;%
   lm(deaths ~ year) %&gt;%
   summary()</code></pre>
 <p>This is because the pipe tries to send data into the first place of
 the function (first argument), but <code>lm()</code> wants the formula
 (<code>deaths ~ year</code>) first, then the tibble We can bypass this
 using <code>data = .</code> to tell the pipe where to put mydata:</p>
-<pre class="r"><code>mydata %&gt;% 
+<pre class="r"><code>mydata %&gt;%
   lm(deaths ~ year, data = .) %&gt;%
   summary()</code></pre>
 </div>
@@ -1047,12 +1056,12 @@ on the same conditions we used for filtering data previously.</p>
 <p>For example, we can add a new variable called
 <code>deaths_over_10m</code> which indicates whether there were more
 than 10 million deaths for a cause.</p>
-<pre class="r"><code>mydata = mydata %&gt;% 
+<pre class="r"><code>mydata = mydata %&gt;%
   mutate(deaths_over_10m = if_else(deaths_millions &gt;= 10, &quot;More than 10 mil&quot;, &quot;Less than 10 mil&quot;))
 
 
 
-mydata %&gt;% 
+mydata %&gt;%
   count(deaths_over_10m)</code></pre>
 <pre><code>## # A tibble: 2 × 2
 ##   deaths_over_10m      n
@@ -1093,28 +1102,28 @@ e &lt;- 7
 </div>
 <div id="exercise-4-solution" class="section level2">
 <h2>Exercise 4 solution</h2>
-<pre class="r"><code>mydata_year2000 = mydata %&gt;% 
+<pre class="r"><code>mydata_year2000 = mydata %&gt;%
   filter(year == 2000)</code></pre>
 </div>
 <div id="exercise-5-solution" class="section level2">
 <h2>Exercise 5 solution</h2>
-<pre class="r"><code>mydata = mydata %&gt;% 
+<pre class="r"><code>mydata = mydata %&gt;%
   select(-new)</code></pre>
 </div>
 <div id="exercise-6-solution" class="section level2">
 <h2>Exercise 6 solution</h2>
-<pre class="r"><code>mydata = mydata %&gt;% 
+<pre class="r"><code>mydata = mydata %&gt;%
   mutate(new = 1)</code></pre>
 </div>
 <div id="exercise-7-solution" class="section level2">
 <h2>Exercise 7 solution</h2>
-<pre class="r"><code>mydata = mydata %&gt;% 
+<pre class="r"><code>mydata = mydata %&gt;%
   mutate(deaths_millions = round(deaths_millions))</code></pre>
 </div>
 <div id="exercise-8-solution" class="section level2">
 <h2>Exercise 8 solution</h2>
 <pre class="r"><code>paste(&quot;Today is&quot;, Sys.Date())</code></pre>
-<pre><code>## [1] &quot;Today is 2022-03-06&quot;</code></pre>
+<pre><code>## [1] &quot;Today is 2022-03-08&quot;</code></pre>
 </div>
 </div>
 

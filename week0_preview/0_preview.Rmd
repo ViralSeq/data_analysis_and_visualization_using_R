@@ -62,6 +62,7 @@ library(arsenal)
 library(ggplot2)
 library(patchwork)
 library(tidyr)
+library(GGally)
 ```
 
 
@@ -163,17 +164,22 @@ p4 <- tcs_chart(df_tcs$TCS_V1V3, "TCS# V1V3")
 
 ```{r, warning = F}
 library(finalfit)
-library(ggplot2)
+
 
 dfall_logic <- dfall %>% filter(dx_ngs_cat=="<30 days" & recent_cat!="Indeterminant" ) %>% 
                             mutate(Recenct_Infection = ifelse(recent_cat == "Recent", 1, 0), 
-                                   ngscollectyr = as.character(ngscollectyr),
+                                   ngscollectyr = as.factor(ngscollectyr),
                                    Age = ifelse(age_cat30 == "Yes", "≤30 y/o", ">30 y/o"),
+                                   Age = as.factor(Age),
                                    gender = ifelse(gender == "Male", "M", gender),
                                    gender = ifelse(gender == "Female", "F", gender),
                                    gender = ifelse(gender == "Transgender Female", "Trans. F", gender),
                                    gender = ifelse(gender == "Transgender Male", "Trans. M", gender),
-                                   gender = relevel(as.factor(gender), ref = "M"))
+                                   gender = relevel(as.factor(gender), ref = "M"),
+                                   owning_jd_region_fsu = as.factor(owning_jd_region_fsu),
+                                   incluster = as.factor(incluster),
+                                   Recenct_Infection = as.factor(Recenct_Infection)
+                                   )
 
 
 names(dfall_logic)[names(dfall_logic) == "owning_jd_region_fsu"] <- "Region"
@@ -182,7 +188,14 @@ names(dfall_logic)[names(dfall_logic) == "gender"] <- "Gender"
 names(dfall_logic)[names(dfall_logic) == "racecat"] <- "Race"
 names(dfall_logic)[names(dfall_logic) == "incluster"] <- "Cluster"
 
+dfall_logic <- dfall_logic %>% select(Race, Gender, Age, Year, Region, Cluster, Recenct_Infection)
+
 explanatory = c("Race", "Gender", "Age", "Year", "Region", "Cluster")
+
+dfall_logic %>% 
+  remove_labels() %>% 
+  ggpairs(columns = explanatory)
+
 dependent = "Recenct_Infection"
 dfall_logic %>%
   finalfit(dependent, explanatory, metrics=TRUE) -> t2

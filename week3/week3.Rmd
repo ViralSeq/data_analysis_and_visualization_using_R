@@ -221,6 +221,7 @@ summary(aov(age ~ arm, data=mockstudy))
 Change summary statistics within the formula. We can specify which test to use for each column. 
 
 ```{r}
+
 tab.test <- tableby(arm ~ kwt(age) + anova(bmi)  + notest(ast) + chisq(race), data=mockstudy)
 tests(tab.test)
 summary(tab.test)

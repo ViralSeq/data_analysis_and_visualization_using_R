@@ -1,0 +1,228 @@
+---
+title: "Week 3 - Summarizing data"
+author: "Shuntai Zhou"
+date: '2022-03-29'
+output:
+  html_document: default
+---
+
+## In this session we will get to know our three best friends for summarizing data: `group_by()`, `summarize()`, and `mutate()`.
+
+## You will also learn summarizing countable tables (one record/patient per line) using `tableby()` from package `arsenal`.
+
+# Sync your Repo
+
+-   Open GitHub Desktop
+-   Click "Current Branch" (should be "Main")
+-   You will see a branch of "upstream/main". Select branch "Main", click "Choose a branch to Merge into **Main**".
+-   Choose "upstream/main", merge into your own "Main". After merging, click "Push Origin".
+
+# Getting help
+
+RStudio has a built in Help tab. To use the Help tab, move your cursor to something in your code (e.g. `read_csv()`) and press F1 - this will show you the definition and some examples. However, the Help tab is only useful if you already know what you are looking for but can't remember how it worked exactly. For finding help on things you have not used before, it is best to Google it. R has about 2 million users so someone somewhere has had the same question or problem.
+
+# Summarize using `group_by()`, `summarize()`, and `mutate()`
+
+## Get the data
+
+Dataset: Global Burden of Disease (year, cause, sex, income, deaths)
+
+The Global Burden of Disease dataset used in this chapter is more detailed than the one we used previously. For each year, the total number of deaths from the three broad disease categories are also separated into sex and World Bank income categories. This means that we have 24 rows for each year, and that the total number of deaths per year is the sum of these 24 rows:
+
+```{r}
+library(tidyverse)
+gbd_full <- read_csv('global_burden_disease_cause-year-sex-income.csv')
+
+
+# Creating a single-year tibble for printing and simple examples:
+gbd2017 <- gbd_full %>% 
+  filter(year == 2017)
+```
+
+## Aggregating: `group_by()`, `summarize()`
+
+Health data analysis is frequently concerned with making comparisons between groups. Groups of genes, or diseases, or patients, or populations, etc. An easy approach to the comparison of data by a categorical grouping is therefore essential.
+
+To quickly calculate the total number of deaths in 2017, we can select the column and send it into the `sum()` function:
+
+```{r}
+gbd2017$deaths_millions %>% sum()
+```
+
+But a much cleverer way of summarizing data is using the summarize() function:
+
+```{r}
+gbd2017 %>% 
+  summarize(sum(deaths_millions))
+```
+
+`sum()` is a function that adds numbers together, whereas `summarize()` is an efficient way of creating summarized tibbles. The main strength of `summarize()` is how it works with the `group_by()` function. `group_by()` and `summarize()` are like cheese and wine, a perfect complement for each other, seldom seen apart.
+
+We use `group_by()` to tell `summarize()` which subgroups to apply the calculations on. In the above example, without `group_by()`, `summarize` just works on the whole dataset, yielding the same result as just sending a single column into the `sum()` function.
+
+We can subset on the cause variable using `group_by()`:
+
+```{r}
+gbd2017 %>% 
+  group_by(cause) %>% 
+  summarise(sum(deaths_millions))
+```
+
+
+Furthermore, `group_by()` is happy to accept multiple grouping variables. So by just copying and editing the above code, we can quickly get summarized totals across multiple grouping variables (by just adding `sex` inside the `group_by()` after `cause`):
+
+```{r}
+gbd2017 %>% 
+  group_by(cause, sex) %>% 
+  summarise(sum(deaths_millions))
+```
+
+
+## Add new columns: `mutate()`
+
+We met `mutate()` in the last workshop. Let’s first give the summarized column a better name, e.g., deaths_per_group. We can remove groupings by using `ungroup()`. This is important to remember if you want to manipulate the dataset in its original format. We can combine `ungroup()` with `mutate()` to add a total deaths column, which will be used below to calculate a percentage:
+
+```{r}
+gbd2017 %>% 
+  group_by(cause, sex) %>% 
+  summarise(deaths_per_group = sum(deaths_millions)) %>% 
+  ungroup() %>% 
+  mutate(deaths_total = sum(deaths_per_group))
+```
+
+### Excerice 1
+
+What would happen if we don't use `ungroup()` in the previous code? Try it out in the following code chunk and compare the differences. 
+
+```{r}
+
+```
+
+
+### Percentages formatting: `percent()`
+
+So `summarize()` condenses a tibble, whereas `mutate()` retains its current size and adds columns. We can also add further lines to `mutate()` to calculate the percentage of each group:
+
+```{r}
+# percent() function for formatting percentages come from library(scales)
+library(scales)
+gbd2017_summarised <- gbd2017 %>% 
+  group_by(cause, sex) %>% 
+  summarise(deaths_per_group = sum(deaths_millions)) %>% 
+  ungroup() %>% 
+  mutate(deaths_total    = sum(deaths_per_group),
+         deaths_relative = percent(deaths_per_group/deaths_total))
+gbd2017_summarised
+```
+
+### Excerice 2
+
+Edit the following code to show percentage without using `percent()` from `scales`. Hint: use `paste()` from last workshop
+
+```{r}
+gbd2017_summarised %>% mutate(
+  deaths_relative = (deaths_per_group / deaths_total * 100) %>% round(1) %>% paste("%", sep = "")
+)
+```
+
+
+##  Common arithmetic functions - `sum()`, `mean()`, `median()`, etc.
+
+Statistics is an R strength, so if there is an arithmetic function you can think of, it probably exists in R.
+
+The most common ones are:
+
+- `sum()`
+- `mean()`
+- `median()`
+- `min()`, `max()`
+- `sd()` - standard deviation
+- `IQR()` - interquartile range
+
+An import thing to remember relates to missing data: if any of your values is NA (not available; missing), these functions will return an NA. Either deal with your missing values beforehand (recommended) or add the `na.rm = TRUE` argument into any of the functions to ask R to ignore missing values.
+
+```{r}
+mynumbers <- c(1, 2, NA)
+sum(mynumbers)
+```
+
+
+```{r}
+sum(mynumbers, na.rm = TRUE)
+```
+
+## `select()` columns
+
+The `select()` function can be used to choose, rename, or reorder columns of a tibble.
+
+```{r}
+gbd2017 %>% 
+  select(cause, deaths = deaths_millions)
+```
+
+## `arrange()` rows
+
+The `arrange()` function sorts rows based on the column(s) you want. By default, it arranges the tibble in ascending order:
+
+```{r}
+gbd2017_summarised %>% 
+  arrange(deaths_per_group)
+```
+For numeric variables, we can just use a `-` to sort in descending order:
+
+```{r}
+gbd2017_summarised %>% 
+  arrange(-deaths_per_group)
+```
+
+## Summarize ountable tables (one record/patient per line) using `tableby()` from package `arsenal`.
+
+`tableby()` function as shown in the workshop preview is very powerful and easy way to summarize a large patient record table. 
+
+```{r}
+library(arsenal)
+
+data("mockstudy")
+
+```
+
+The base R also provides a function `summary()` to quickly examine the table. 
+
+```{r}
+mockstudy %>% summary()
+```
+
+We can use `summarize()`, `group_by()`, and arithmetic functions to explore the data. 
+```{r}
+mockstudy %>% summarize(mean(bmi, na.rm = T))
+mockstudy %>% 
+  group_by(sex) %>% 
+  summarize(mean(hgb, na.rm = T))
+```
+
+
+To create a simple table stratified by treatment arm, use a formula statement to specify the variables that you want summarized. The example below uses age (a continuous variable) and sex (a factor).
+```{r, results = 'asis'}
+tab1 <- tableby(arm ~ sex + age, data=mockstudy)
+summary(tab1)
+```
+
+If you want to summarize such using basic R code, it will look like this.
+
+```{r}
+tmp <- table(Gender=mockstudy$sex, "Study Arm"=mockstudy$arm)
+tmp
+chisq.test(tmp)
+tapply(mockstudy$age, mockstudy$arm, summary)
+summary(aov(age ~ arm, data=mockstudy))
+```
+
+
+Change summary statistics within the formula. We can specify which test to use for each column. 
+
+```{r}
+tab.test <- tableby(arm ~ kwt(age) + anova(bmi)  + notest(ast) + chisq(race), data=mockstudy)
+tests(tab.test)
+summary(tab.test)
+```
+

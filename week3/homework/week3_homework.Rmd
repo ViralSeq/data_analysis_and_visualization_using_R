@@ -1,0 +1,28 @@
+---
+title: "Week 3 homework"
+output: html_document
+date: '2022-03-29'
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Goals. 
+- Use `tableby()` to summarize patient data table
+
+
+### In the following code chunk, read "data.csv" as tibble "data". Make sure load package `tidyverse` first. 
+```{r}
+
+```
+### create a new column `age_group`, if the `age_at_collection` is greater or equal to 40 y/o, the value will be `≥ 40 y/o`, otherwise it will be `< 40 y/o`.
+
+```{r}
+
+```
+
+### Use the `table()` function to summarize the `data` tibble. Group the patients by `sex`, summarize `CD4`, `viral_load`, `age_group`. Print out the table. Make sure you load library `arsenal` first. Use Kruskal-Wallis rank sum test (`kwt`) for CD4 value, one-way anova for `CD4` and `viral_load`. Fisher's exact test for `age_group` (`fe`).
+```{r, results='asis'}
+
+```

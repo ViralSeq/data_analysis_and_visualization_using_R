@@ -64,7 +64,7 @@ We can subset on the cause variable using `group_by()`:
 
 ```{r}
 gbd2017 %>% 
-  group_by(cause) %>% 
+  group_by(income) %>% 
   summarise(sum(deaths_millions))
 ```
 
@@ -95,7 +95,11 @@ gbd2017 %>%
 What would happen if we don't use `ungroup()` in the previous code? Try it out in the following code chunk and compare the differences. 
 
 ```{r}
-
+gbd2017 %>% 
+  group_by(cause, sex) %>% 
+  summarise(deaths_per_group = sum(deaths_millions)) %>% 
+  # ungroup() %>% 
+  mutate(deaths_total = sum(deaths_per_group))
 ```
 
 
@@ -142,7 +146,7 @@ The most common ones are:
 An import thing to remember relates to missing data: if any of your values is NA (not available; missing), these functions will return an NA. Either deal with your missing values beforehand (recommended) or add the `na.rm = TRUE` argument into any of the functions to ask R to ignore missing values.
 
 ```{r}
-mynumbers <- c(1, 2, NA)
+mynumbers <- c(1, 2, 3, NA)
 sum(mynumbers)
 ```
 

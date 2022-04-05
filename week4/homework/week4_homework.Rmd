@@ -1,0 +1,26 @@
+---
+title: "week 4 homework"
+author: ""
+date: '2022-04-05'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In the class we have the generated a line chart for `lifeExp ~ year` using the following code. 
+
+```{r}
+library(tidyverse)
+library(gapminder)
+
+gapdata %>% 
+  ggplot(aes(x = year, y = lifeExp, group = country)) +
+  geom_line()
+```
+
+Modify the code to change the figure into this one. Use `theme_bw()`
+
+![result](fig.png)
+

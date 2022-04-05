@@ -22,7 +22,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```
 
-### Use the `table()` function to summarize the `data` tibble. Group the patients by `sex`, summarize `CD4`, `viral_load`, `age_group`. Print out the table. Make sure you load library `arsenal` first. Use Kruskal-Wallis rank sum test (`kwt`) for CD4 value, one-way anova for `CD4` and `viral_load`. Fisher's exact test for `age_group` (`fe`).
+### Use the `tableby()` function to summarize the `data` tibble. Group the patients by `sex`, summarize `CD4`, `viral_load`, `age_group`. Print out the table. Make sure you load library `arsenal` first. Use Kruskal-Wallis rank sum test (`kwt`) for CD4 value, one-way anova `viral_load`. Fisher's exact test for `age_group` (`fe`).
 ```{r, results='asis'}
 
 ```

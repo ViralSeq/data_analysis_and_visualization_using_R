@@ -157,6 +157,8 @@ gapdata2007 %>%
   theme(legend.position = "none")
 
 ```
+
+
 We have added `theme(legend.position = "none")` to remove the legend - it includes all 142 countries and is not very informative in this case.
 We're only including the colors for a bit of fun.
 
@@ -226,6 +228,8 @@ p2 <- gapdata2007 %>%
 p0 + p1 + p2 + 
   plot_annotation(tag_levels = "A", tag_prefix = "(", tag_suffix = ")")
 ```
+
+
 ## Box plots
 
 Box plots are our go to method for quickly visualising summary statistics of a continuous outcome variable (such as life expectancy in the gapminder dataset.
@@ -243,6 +247,7 @@ gapdata2007 %>%
   geom_boxplot()
 ```
 
+
 Another variation of box plot is violin plot `geom_violin()`
 
 ```{r}
@@ -250,6 +255,9 @@ gapdata2007 %>%
   ggplot(aes(x = continent, y = lifeExp)) +
   geom_violin()
 ```
+
+
+
 ## Multiple geoms, multiple `aes()`
 
 One of the coolest things about `ggplot()` is that we can plot multiple geoms on top of each other!
@@ -262,6 +270,7 @@ gapdata2007 %>%
   geom_boxplot() +
   geom_point()
 ```
+
 
 More examples:
 
@@ -291,6 +300,8 @@ p4 <- gapdata2007 %>%
 
 p1 + p2 + p3 + p4 + plot_annotation(tag_levels = "1", tag_prefix = "(", tag_suffix = ")")
 ```
+
+
 The only thing we've changed in (2) is replacing `geom_point()` with `geom_jitter()` - this spreads the points out to reduce overplotting.
 
 But what's really exciting is the difference between (3) and (4).

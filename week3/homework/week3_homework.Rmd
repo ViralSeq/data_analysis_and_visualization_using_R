@@ -14,15 +14,22 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### In the following code chunk, read "data.csv" as tibble "data". Make sure load package `tidyverse` first. 
 ```{r}
-
+library(tidyverse)
+data <- read_csv('data.csv')
 ```
 ### create a new column `age_group`, if the `age_at_collection` is greater or equal to 40 y/o, the value will be `≥ 40 y/o`, otherwise it will be `< 40 y/o`.
 
 ```{r}
+data <- data %>% mutate(
+  age_group = ifelse(age_at_collection >= 40, "≥ 40 y/o", "< 40 y/o")
+)
 
 ```
 
 ### Use the `tableby()` function to summarize the `data` tibble. Group the patients by `sex`, summarize `CD4`, `viral_load`, `age_group`. Print out the table. Make sure you load library `arsenal` first. Use Kruskal-Wallis rank sum test (`kwt`) for CD4 value, one-way anova `viral_load`. Fisher's exact test for `age_group` (`fe`).
 ```{r, results='asis'}
+library(arsenal)
 
+tab <- tableby(sex ~ kwt(CD4) + viral_load + fe(age_group), data = data)
+summary(tab)
 ```

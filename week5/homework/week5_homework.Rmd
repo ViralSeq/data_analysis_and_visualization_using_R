@@ -1,0 +1,41 @@
+---
+title: "week 5 homework"
+author: ""
+date: '2022-04-12'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+First we load all the necessary datasets. 
+
+```{r}
+library(tidyverse)
+library(gapminder)
+
+gapdata <- gapminder
+
+gapdata2007 <- gapminder %>% 
+  filter(year == 2007)
+
+```
+
+Create the following figure of life expectancy in American countries (year 2007):
+(if the figure seems too small in RStudio, open the 'fig_week5_homework.png' file in your homework folder)
+
+![fig](fig_week5_homework.png)
+Hints:
+
+* If `geom_bar()` doesn't work try `geom_col()` or vice versa.
+* `coord_flip()` to make the bars horizontal (it flips the `x` and `y` axes).
+* `x = country` gets the country bars plotted in alphabetical order, use `x = fct_reorder(country, lifeExp)` still inside the `aes()` to order the bars by their `lifeExp` values. Or try one of the other variables (`pop`, `gdpPercap`) as the second argument to `fct_reorder()`.
+* when using `fill = NA`, you also need to include a color; we're using `color = "deepskyblue"` inside the `geom_col()`.
+* use `geom_text()` to label the `lifeExp`. You can use `round()` to round up to 1 digit. 
+* Choose `theme_classic()`
+
+```{r}
+
+```
+

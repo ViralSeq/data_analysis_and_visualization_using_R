@@ -74,8 +74,9 @@ library(tidyverse)
 library(gapminder)
 
 gapdata %>% 
-  ggplot(aes(x = year, y = lifeExp, group = country)) +
-  geom_line()
+  ggplot(aes(x = year, y = lifeExp, group = country, color = continent)) +
+  facet_wrap(~ continent) + 
+  geom_line() + theme_bw()
 ```
 
 Modify the code to change the figure into this one. Use `theme_bw()`
@@ -268,6 +269,8 @@ Let's add individual data points on top of the box plots:
 gapdata2007 %>% 
   ggplot(aes(x = continent, y = lifeExp)) +
   geom_boxplot() +
+  # ylim(60,80) +
+  # coord_cartesian(ylim = c(60,80)) + 
   geom_point()
 ```
 
@@ -342,7 +345,7 @@ gapdata2007 %>%
   ggplot(aes(x = continent, y = lifeExp)) +
   # First geom - boxplot
   geom_boxplot() +
-  # Second geom - jitter with its own aes(colour = )
+  # Second geom - jitter with its own aes(color = )
   geom_jitter(aes(colour = continent)) +
   # Third geom - label, with its own dataset (label_data) and aes(label = )
   geom_label(data = label_data, aes(label = country))

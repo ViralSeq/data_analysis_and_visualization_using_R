@@ -1,0 +1,485 @@
+---
+title: "Week 6"
+author: "Shuntai Zhou"
+date: '2022-04-18'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
+```
+
+# Plotting using R
+
+## 1. Week 4
+
+-   Anatomy of `ggplot`
+-   Scatter plots
+-   Line plots
+
+## 2. Week 5
+
+-   Bar Plots
+-   Histograms
+-   Multiple geoms, multiple `aes()`
+-   All other plots
+
+## 3. Week 6, Tuning plots
+
+-   Scales
+-   Colors
+-   Titles and labels
+-   Themes
+-   Save your plot
+
+## Sync your Repo
+
+-   Open GitHub Desktop
+-   Click "Current Branch" (should be "Main")
+-   You will see a branch of "upstream/main". Select branch "Main", click "Choose a branch to Merge into **Main**".
+-   Choose "upstream/main", merge into your own "Main". After merging, click "Push Origin".
+
+## Get the data
+
+We are using the gapminder dataset (<https://www.gapminder.org/data>) that has been put into an R package by @bryan2017 so we can load it with `library(gapminder)`.
+
+
+```{r, message=F, include = TRUE}
+library(tidyverse)
+library(gapminder)
+
+```
+
+Let's create a new shorter tibble called `gapdata2007` that only includes data for the year 2007.
+
+```{r, results = "hide"}
+gapdata2007 <- gapminder %>% 
+  filter(year == 2007)
+```
+
+loads the gapminder dataset from the package environment into your Global Environment
+
+```{r}
+gapdata <- gapminder
+```
+
+Both `gapdata` and `gapdata2007` now show up in the Environment tab and can be clicked on/quickly viewed as usual.
+
+## Homework week 5
+
+Create the following figure of life expectancy in American countries (year 2007):
+(if the figure seems too small in RStudio, open the 'fig_week5_homework.png' file in your homework folder)
+
+![fig](fig_week5_homework.png)
+
+Hints:
+
+* If `geom_bar()` doesn't work try `geom_col()` or vice versa.
+* `coord_flip()` to make the bars horizontal (it flips the `x` and `y` axes).
+* `x = country` gets the country bars plotted in alphabetical order, use `x = fct_reorder(country, lifeExp)` still inside the `aes()` to order the bars by their `lifeExp` values. Or try one of the other variables (`pop`, `gdpPercap`) as the second argument to `fct_reorder()`.
+* when using `fill = NA`, you also need to include a color; we're using `color = "deepskyblue"` inside the `geom_col()`.
+* use `geom_text()` to label the `lifeExp`. You can use `round()` to round up to 1 digit. 
+* Choose `theme_classic()`
+
+```{r}
+
+gapdata2007 %>% 
+  filter(continent == 'Americas') %>% 
+  ggplot(aes(x = fct_reorder(country, lifeExp), y = lifeExp)) + 
+  geom_col(fill = NA, color = "deepskyblue") + 
+  coord_flip() + 
+  geom_text(aes(label = round(lifeExp, digits = 1))) + 
+  theme_classic()
+
+```
+
+# Fine tuning plots
+
+We can save a `ggplot()` object into a variable (we usually call it `p` but it can be any name). 
+This then appears in the Environment tab. 
+To plot it it needs to be recalled on a separate line to get drawn. 
+Saving a plot into a variable allows us to modify it later (e.g., `p + theme_bw()`).
+
+
+```{r,fig.height=3, fig.width=4, message=FALSE, fig.cap = "p0: Starting plot for the examples in this chapter."}
+
+p0 <-  gapdata2007 %>% 
+  ggplot(aes(y = lifeExp, x = gdpPercap, color = continent)) +
+  geom_point(alpha = 0.3) +
+  theme_bw() +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_brewer(palette = "Set1")
+
+p0
+```
+
+## Scales
+
+### Logarithmic
+
+Transforming an axis to a logarithmic scale can be done by adding on `scale_x_log10()`:
+
+```{r}
+p1 <- p0 + scale_x_log10()
+p1
+```
+
+`scale_x_log10()` and `scale_y_log10()` are shortcuts for the base-10 logarithmic transformation of an axis.
+The same could be achieved by using, e.g.,  `scale_x_continuous(trans = "log10")`. 
+The latter can take a selection of options, namely `"reverse"`, `"log2"`, or `"sqrt"`.
+Check the Help tab for `scale_continuous()` or look up its online documentation for a full list.
+
+### Expand limits
+
+A quick way to expand the limits of your plot is to specify the value you want to be included:
+
+```{r}
+p2 <- p0 + expand_limits(y = 0)
+p2
+```
+
+Or two values for extending to both sides of the plot:
+
+```{r}
+p3 <- p0 + expand_limits(y = c(0, 100))
+p3
+```
+
+By default, `ggplot()` adds some padding around the included area (see how the scale doesn't start from 0, but slightly before). 
+This ensures points on the edges don't get overlapped with the axes, but in some cases - especially if you've already expanded the scale, you might want to remove this extra padding. 
+You can remove this padding with the `expand` argument:
+
+```{r}
+p4 <- p0 +
+  expand_limits(y = c(0, 100)) +
+  coord_cartesian(expand = FALSE)
+
+p4 
+```
+
+
+
+We are now using a new library - __patchwork__ - to print all 4 plots together.
+Its syntax is very simple - it allows us to add ggplot objects together.
+(Trying to do `p1 + p2` without loading the __patchwork__ package will not work, R will say "Error: Don't know how to add p2 to a plot".)
+
+
+```{r, fig.cap = "p1: Using a logarithmic scale for the x axis. p2: Expanding the limits of the y axis to include 0. p3: Expanding the limits of the y axis to include 0 and 100. p4: Removing extra padding around the limits."}
+library(patchwork)
+p1 + p2 + p3 + p4 + plot_annotation(tag_levels = "1", tag_prefix = "p")
+```
+
+
+### Zoom in
+
+```{r}
+p5 <- p0 +
+  coord_cartesian(ylim = c(70, 85), xlim = c(20000, 40000)) 
+
+p5
+```
+
+
+How is this one different to the previous?
+
+
+```{r}
+p6 <- p0 +
+  scale_y_continuous(limits = c(70, 85)) +
+  scale_x_continuous(limits = c(20000, 40000))
+  #ylim(70, 85) + xlim(20000,40000)
+
+p6
+```
+
+```{r, fig.height=3, fig.cap="p5: Using `coord_cartesian()` vs p6: Using `scale_x_continuous()` and `scale_y_continuous()` for setting the limits of plot axes."}
+p5 + labs(tag = "p5") + p6 + labs(tag = "p6")
+
+```
+
+
+Previously we used **patchwork**'s `plot_annotation()` function to create our multiplot tags.
+Since our exmaples no longer start the count from 1, we're using `ggplot()`'s tags instead, e.g., `labs(tag = "p5")`.
+The `labs()` function will be covered in more detail later in this chapter.
+
+### Axis ticks
+
+`ggplot()` does a good job deciding how many and which values include on the axis.
+
+But sometimes you'll want to specify these. We can do so by using the `breaks` argument:
+
+```{r, fig.height=3, fig.cap = "p7: Specifiying y axis breaks. p8: Adding custom labels for our breaks."}
+# calculating the maximum value to be included in the axis breaks:
+max_value <- gapdata2007$lifeExp %>% max() %>% round(1)
+
+# using scale_y_continuous(breaks = ...):
+p7 <-  p0 +
+  coord_cartesian(ylim = c(0, 100), expand = FALSE) +
+  scale_y_continuous(breaks = c(18, 50, max_value))
+
+# we may also include custom labels for our breaks:
+p8 <-  p0 +
+  coord_cartesian(ylim = c(0, 100), expand = FALSE) +
+  scale_y_continuous(breaks = c(18, 50, max_value), labels = c("Adults", "50", "MAX"))
+
+p7 + labs(tag = "p7") + p8 + labs(tag = "p8")
+```
+
+## Colors
+
+### Using the Brewer palettes:
+
+The easiest way to change the color palette of your `ggplot()` is to specify a Brewer palette.
+
+```{r fig.height=3, fig.width=4}
+p9 <- p0 +
+  scale_color_brewer(palette = "Paired")
+p9
+```
+
+Note that http://colorbrewer2.org/ also has options for *Colorblind safe* and *Print friendly*.
+
+
+Another easy way for scientific publications is to use package **ggsci**. 
+
+```{r, fig.height=3, fig.width=4}
+library(ggsci)
+
+p9 <- p0 +
+  scale_color_jama()
+p9
+```
+
+
+### Legend title
+
+`scale_color_brewer()` or `scale_color_jama()` is also a convenient place to change the legend title.
+
+
+```{r, fig.height=3, fig.width=4}
+library(ggsci)
+
+p10 <- p0 +
+  scale_color_rickandmorty(name = "Continent - \n one of 5")
+p10
+```
+
+
+Note the `\n` inside the new legend title - new line.
+
+```{r, fig.height=3, fig.cap = "p9: Choosing a ggsci palette for your colors. p10: Changing the legend title."}
+p9 + labs(tag = "p9") + p10 + labs(tag = "p10")
+```
+
+
+### Choosing colors manually
+
+R also knows the names of many colors, so we can use words to specify colors:
+
+```{r}
+p11 <- p0 +
+  scale_color_manual(values = c("red", "green", "blue", "purple", "pink"))
+p11
+```
+
+The same function can also be used to use HEX codes for specifying colors:
+
+
+```{r}
+p12 <- p0 +
+  scale_color_manual(values = c("#8dd3c7", "#ffffb3", "#bebada",
+                                "#fb8072", "#80b1d3"))
+p12
+```
+
+```{r, fig.height=3, fig.cap = "Colors can also be specified using words (`\"red\"`, `\"green\"`, etc.), or HEX codes (`\"#8dd3c7\"`, `\"#ffffb3\"`, etc.)."}
+p11 + labs(tag = "p11") + p12 + labs(tag = "p12")
+```
+
+## Titles and labels
+
+
+We've been using the `labs(tag = )` function to add tags to plots.
+But the `labs()` function can also be used to modify axis labels, or to add a title, subtitle, or a caption to your plot.
+
+```{r, fig.height=3, fig.width=4, fig.cap = "p13: Adding on a title, subtitle, caption using `labs()`."}
+p13 <- p0 +
+  labs(x = "Gross domestic product per capita",
+       y = "Life expectancy",
+       title = "Health and economics",
+       subtitle = "Gapminder dataset, 2007",
+       caption = Sys.Date() %>% format("%B %d, %Y"),
+       tag = "p13")
+
+p13
+```
+
+### Annotation
+
+In the previous chapter, we showed how use `geom_text()` and `geom_label()` to add text elements to a plot. 
+Using geoms make sense when the values are based on data and variables mapped in `aes()`.
+They are efficient for including multiple pieces of text or labels on your data.
+For 'hand' annotating a plot, the `annotate()` function makes more sense, as you can quickly insert the type, location and label of your annotation.
+
+```{r}
+p14 <- p0 +
+  annotate("text",
+           x = 25000,
+           y = 50,
+           label = "No points here!")
+
+```
+
+```{r}
+p15 <- p0 +
+  annotate("label",
+           x = 25000,
+           y = 50,
+           label = "No points here!")
+```
+
+```{r}
+p16 <- p0 +
+  annotate("label",
+           x = 25000, 
+           y = 50,
+           label = "No points here!", 
+           hjust = 0)
+```
+
+```{r, fig.height=4, fig.cap = "p14: `annotate(\"text\", ...)` to quickly add a text on your plot. p15: `annotate(\"label\")` is similar but draws a box around your text (making it a label). p16: Using `hjust` to control the horizontal justification of the annotation."}
+p14 + labs(tag = "p14") + (p15 + labs(tag = "p15"))/ (p16 + labs(tag = "p16"))
+```
+
+
+`hjust` stands for horizontal justification. Its default value is 0.5 (see how the label was centered at 25,000 - our chosen x location), 0 means the label goes to the right from 25,000, 1 would make it end at 25,000.
+
+### Annotation with a superscript and a variable
+
+This is an advanced example on how to annotate your plot with something that has a superscipt and is based on a single value read in from a variable.
+
+
+```{r, fig.height=3, fig.width=4, fig.cap = "p17: Using a superscript in your plot annotation."}
+# a value we made up for this example
+# a real analysis would get it from the linear model object
+fit_glance <- tibble(r.squared = 0.7693465)
+
+
+plot_rsquared <- paste0(
+  "R^2 == ",
+  fit_glance$r.squared %>% round(2))
+
+
+p17 <- p0 +
+  annotate("text",
+           x = 25000, 
+           y = 50,
+           label = plot_rsquared, parse = TRUE,
+           hjust = 0)
+
+p17 + labs(tag = "p17")
+```
+
+
+## Overall look 
+
+And finally, everything else on a plot - from font to background to the space between facets, can be changed using the `theme()` function.
+As you saw in the previous chapter, in addition to its default grey background, `ggplot2` also comes with a few built-in themes, namely, `theme_bw()` or `theme_classic()`.
+These produce good looking plots that may already be publication ready. 
+But if we do decide to tweak them, then the main `theme()` arguments we use are `axis.text`, `axis.title`, and `legend.position`. 
+
+Note that all of these go inside the `theme()`, and that the `axis.text` and `axis.title` arguments are usually followed by `= element_text()` as shown in the examples below.
+
+### Text size
+
+The way the `axis.text` and `axis.title` arguments of `theme()` work is that if you specify `.x` or `.y` it gets applied on that axis alone.
+But not specifying these, applies the change on both.
+Both the `angle` and `vjust` (vertical justification) options can be useful if your axis text doesn't fit well and overlaps.
+It doesn't usually make sense to change the color of the font to anything other than `"black"`, we are using green and red here to indicate which parts of the plot get changed with each line.
+
+
+```{r, fig.height=3, fig.width=4, fig.cap = "p18: Using `axis.text` and `axis.title` within `theme()` to tweak the appearance of your plot, including font size and angle. Colored font is used to indicate which part of the code was used to change each element."}
+p18 <-  p0 +
+  theme(axis.text.y = element_text(color = "green", size = 14),
+        axis.text.x = element_text(color = "red",  angle = 45, vjust = 0.5, face = 'bold'),
+        axis.title  = element_text(color = "blue", size = 16, family = "Times", face = 'italic')
+        )
+
+p18 + labs(tag = "p18")
+
+```
+
+
+### Legend position
+
+
+The position of the legend can be changed using the `legend.position` argument within `theme()`. It can be positioned using the following words: `"right", "left", "top", "bottom"`.
+Or to remove the legend completely, use `"none"`:
+
+
+```{r}
+p19 <- p0 +
+  theme(legend.position = "none")
+p19
+```
+
+
+Alternatively, we can use relative coordinates (0--1) to give the legend a relative x-y location.
+
+```{r}
+p20 <- p0 +
+  theme(legend.position      = c(1,0), #bottom-right corner
+        legend.justification = c(1,0)) 
+p20
+```
+
+
+```{r, fig.height=4, fig.width=8, fig.cap = "p19: Setting `theme(legend.position = \"none\")` removes it. p20: Relative coordinates such as `theme(legend.position = c(1,0)` can by used to place the legend within the plot area."}
+p19 + labs(tag = "p19") + p20 + labs(tag = "p20")
+```
+
+
+Further `theme(legend.)` options can be used to change the size, background, spacing, etc., of the legend. 
+However, for modifying the content of the legend, you'll have to use the `guides()` function. 
+Again, `ggplot()`'s defaults are very good, and we rarely need to go into this much tweaking using both the `theme()` and `guides()` functions. But it is good to know what is possible.
+
+For example, this is how to change the number of columns within the legend (Figure \@ref(fig:chap05-fig-p21)):
+
+
+```{r, fig.height=4, fig.width=4, fig.cap = "p21: Changing the number of columns within a legend."}
+p21 <- p0 +
+  guides(color = guide_legend(ncol = 2)) +
+  theme(legend.position = "top") # moving to the top optional
+
+p21 + labs(tag = "p21")
+```
+
+
+## Saving your plot
+
+There are several ways to save your figures. 
+
+- Save in Rstudio at each code chunk, right click the images. (**NOT RECOMMENDED**)
+- Knit to an html, pdf or word document, and save the images from those files. 
+- Or, use `ggsave()` function in your code. It can save a single plot into a variety of formats, namely `"pdf"` or `"png"`
+
+```{r}
+ggsave(p0, file = "my_saved_plot.pdf", width = 5, height = 4)
+```
+
+
+If you omit the first argument - the plot object - and call, e.g., `ggsave(file = "plot.png)` it will just save the last plot that got printed.
+
+Text size tip: playing around with the width and height options (they're in inches) can be a convenient way to increase or decrease the relative size of the text on the plot.
+Look at the relative font sizes of the two versions of the `ggsave()` call, one 5x4, the other one 10x8. 
+
+```{r}
+ggsave(p0, file = "my_saved_plot_larger.pdf", width = 10, height = 8)
+```
+
+
+Again, we emphasis the importance of understanding the underlying data through visualization, rather than relying on statistical tests or, heaven forbid, the p-value alone.
+
+
+
+

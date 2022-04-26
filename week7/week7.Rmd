@@ -1,0 +1,444 @@
+---
+title: "Week 7"
+author: "Shuntai Zhou"
+date: '2022-04-26'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
+```
+
+# Plotting Phylogenetic trees with R
+
+## 1. Week 7
+
+-   Basic of phylogenetic tree
+-   Packages to manage trees in R
+-   Loading phylogenetic tree in R
+-   Plot tree using `ggtree`
+
+## 2. Week 8
+
+-   Link tree with data
+-   Plot tree with data
+-   Visual exploration of phylogentic trees
+
+## Sync your Repo
+
+-   Open GitHub Desktop
+-   Click "Current Branch" (should be "Main")
+-   You will see a branch of "upstream/main". Select branch "Main", click "Choose a branch to Merge into **Main**".
+-   Choose "upstream/main", merge into your own "Main". After merging, click "Push Origin".
+
+## Overview of Phylogenetic Tree Construction.
+
+### What is a phylogenetic tree?
+
+-   Phylogenetic trees are used to describe genealogical relationships among a group of organisms
+
+-   Trees can be constructed based on the genetic sequences of the organisms.
+
+![**Components of a phylogenetic tree**](phylogeny-1.svg)
+
+-   External nodes (green circles), also called ***tips***, represent actual organisms sampled and sequenced.
+
+-   They are the ***taxa*** in the terminology of evolutionary biology.
+
+-   The ***internal nodes*** (blue circles) represent hypothetical ancestors for the tips.
+
+-   The ***root*** (red circle) is the common ancestor of all species in the tree.
+
+-   The horizontal lines are ***branches*** and represent evolutionary changes (gray number) measured in a unit of time or genetic divergence.
+
+-   The bar at the bottom provides the ***scale*** of these branch lengths.
+
+### Methods to build phylogenetic trees
+
+-   **Distance-based Methods**, constructed from genetic sequences
+
+    -   UPGMA
+
+    -   NJ
+
+-   **Character-based methods**, based on a mathematical model that describes the evolution of genetic characters and searches for the best phylogenetic tree according to their optimality criteria.
+
+    -   maximum parsimony (MP)
+
+    -   maximum likelihood (ML)
+
+    -   Bayesian Markov Chain Monte Carlo (BMCMC) method
+
+The maximum likelihood (ML) method and Bayesian Markov Chain Monte Carlo (BMCMC) method are the two most commonly used methods in phylogenetic tree construction and are most often used in scientific publications. ML and BMCMC methods require a substitution model of sequence evolution. Different sequence data have different substitution models to formulate the evolutionary process of DNA, codon and amino acid. There are several models for nucleotide substitution, including JC69, K2P, F81, HKY, and GTR
+
+Data associated with a simple tree:
+
+-   branch lengths
+
+-   lineage supports such as bootstrap values or posterior clade probability
+
+## Phylogenetic Tree Format
+
+Three most common formats are:
+
+-   Newick
+
+-   Nexus
+
+-   Phylip
+
+#### The Newick format
+
+![**A sample tree for demonstrating Newick text to encode tree structure.** Tips were aligned to the right-hand side and branch lengths were labeled on the middle of each branch.](randomTree-1.svg)
+
+The rooted tree shown in figure above can be represented by the following sequence of characters as a Newick tree text.
+
+    ((t2:0.04,t1:0.34):0.89,(t5:0.37,(t4:0.03,t3:0.67):0.9):0.59); 
+
+-   The tree text ends with a semicolon.
+-   Internal nodes are represented by a pair of matched parentheses.
+-   Between the parentheses are descendant nodes of that node.
+-   Sibling nodes are separated by a comma and tips are represented by their names.
+-   A branch length (from the parent node to child node) is represented by a real number after the child node and is preceded by a colon.
+-   Singular data (e.g., bootstrap values) associated with internal nodes or branches may be encoded as node labels and represented by the simple text/numbers before the colon.
+
+#### The Nexus format
+
+The NEXUS format incorporates Newick tree text with related information organized into separated units known as **blocks**. A NEXUS block has the following structure:
+
+    #NEXUS
+    ...
+    BEGIN characters;
+    ...
+    END;
+
+For example, the above example tree can be saved as the following NEXUS format:
+
+    #NEXUS
+    [R-package APE, Fri Apr 22 16:00:45 2022]
+
+    BEGIN TAXA;
+        DIMENSIONS NTAX = 5;
+        TAXLABELS
+            t2
+            t1
+            t5
+            t4
+            t3
+        ;
+    END;
+    BEGIN TREES;
+        TRANSLATE
+            1   t2,
+            2   t1,
+            3   t5,
+            4   t4,
+            5   t3
+        ;
+        TREE * UNTITLED = [&R]
+    ((1:0.04,2:0.34):0.89,(3:0.37,(4:0.03,5:0.67):0.9):0.59);
+    END;
+
+-   Comments can be placed using square brackets.
+
+-   Some blocks can be recognized by most of the programs including `TAXA` (contains information of taxa), `DATA` (contains data matrix, *e.g.*, sequence alignment), and `TREE` (contains a phylogenetic tree, *i.e.*, Newick tree text).
+
+-   Notably, blocks can be very diverse and some of them are only recognized by one particular program. Most of the programs only support parsing `TAXA`, `DATA`, and `TREE` blocks; therefore, a program/platform that could generically read all kinds of data blocks from the NEXUS would be useful for phylogenetic data integration.
+
+The `DATA` block is widely used to store sequence alignment. For this purpose, the user can store tree and sequence data in Phylip format which are essentially Phylip multiple sequence alignment and Newick tree text, respectively.
+
+#### Software outputs
+
+-   RAxML
+
+-   BEAST
+
+-   MyBayes
+
+-   HyPhy
+
+        #NEXUS
+
+        [
+        Generated by HYPHY 2.0020110620beta(MP) for MacOS(Universal Binary) 
+            on Tue Dec 23 13:52:34 2014
+
+        ]
+
+        BEGIN TAXA;
+            DIMENSIONS NTAX = 13;
+            TAXLABELS
+                'Node1' 'Node2' 'Node3' 'Node4' 'Node5' 'Node12' 'Node13' 'Node15'
+                    'Node18' 'Node20' 'Node22' 'Node24' 'Node26' ;
+        END;
+
+        BEGIN CHARACTERS;
+            DIMENSIONS NCHAR = 2148;
+            FORMAT
+                DATATYPE = DNA
+
+                GAP=-
+                MISSING=?
+                NOLABELS
+            ;
+
+        MATRIX
+         ATGGAAGACTTTGTGCGACAATGCTTCAATCCAATGATCGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+         ATGGAAGACTTTGTGCGACAATGCTTCAATCCAATGATCGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+         ATGGAAGACTTTGTGCGACAATGCTTCAATCCAATGATCGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+         ATGGAAGACTTTGTGCGACAATGCTTCAATCCAATGATCGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+         ATGGAAGACTTTGTGCGACAATGCTTCAATCCAATGATTGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+         ATGGAAGACTTTGTGCGACAATGCTTCAATCCAATGATCGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+         ATGGAAGACTTTGTGCGACAATGCTTCAATCCAATGATCGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+         ATGGAAGACTTTGTGCGACAATGCTTCAATCCAATGATCGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+         ATGGAAGACTTTGTGCGACAATGCTTCAATCCAATGATCGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+         ATGGAAGACTTTGTGCGACAATGCTTCAATCCAATGATCGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+         ATGGAAGACTTTGTGCGACAATGCTTCAATCCAATGATCGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+         ATGGAAGACTTTGTGCGACAATGCTTCAATCCAATGATCGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+         ATGGAAGACTTTGTGCGACAGTGCTTCAATCCAATGATCGTCGAGCTTGCGGAAAAGGCAATGAAAGAATAT
+        END;
+
+        BEGIN TREES;
+            TREE tree = (K,N,(D,(L,(J,(G,((C,(E,O)),(H,(I,(B,(A,(F,M)))))))))));
+        END;
+
+## R packages to visualize phylogenetic trees.
+
+We are going to use a package suite `treedataverse` to import tree, manipulate data associated with tree, visualize tree, etc.
+
+`treedataverse` includes the following packages.
+
+```{r, message = T}
+library(treedataverse)
+```
+
+-   ape: core to many bioinformatics functions
+-   ggplot2: core for plotting
+-   dplyr: core for data manipulation
+-   treeio: importing and exporting tree with richly annotated data
+-   tidytree: manipulating tree with data using the tidy interface
+-   ggtree: plotting plylogeny in ggplot2 interface
+-   ggtreeExtra: presenting data with a phylogeny side-by-side for a rectangular layout or in outer rings for a circular layout
+
+### Intall `treedataverse` suite
+
+`treedataverse` is available on `bioconductor`. It can not be installed using regular `install.packages` function.
+
+To install `treedataverse`:
+
+```{r, eval = FALSE}
+# first install BiocManager
+install.packages("BiocManager")
+
+# install treedataverse
+BiocManager::install("YuLab-SMU/treedataverse")
+
+```
+
+You may see some error massages regarding missing packages. Instal them using `BiocManager::install()`
+
+## Get tree data using `treeio`
+
+![**Overview of the *`treeio`* package and its relations with *`tidytree`* and *`ggtree`***](treeio-diagram.png)
+
+`treeio` has a number of functions to import trees of different formats and turn them into the `treedata` object.
+
+| Parser function   | Description                                                                                |
+|:---------------------|:------------------------------------------------|
+| read.astral       | parsing output of ASTRAL                                                                   |
+| read.beast        | parsing output of BEAST                                                                    |
+| read.codeml       | parsing output of CodeML (rst and mlc files)                                               |
+| read.codeml_mlc   | parsing mlc file (output of CodeML)                                                        |
+| read.fasta        | parsing FASTA format sequence file                                                         |
+| read.hyphy        | parsing output of HYPHY                                                                    |
+| read.hyphy.seq    | parsing ancestral sequences from HYPHY output                                              |
+| read.iqtree       | parsing IQ-Tree Newick string, with the ability to parse SH-aLRT and UFBoot support values |
+| read.jplace       | parsing jplace file including the output of EPA and pplacer                                |
+| read.jtree        | parsing jtree format                                                                       |
+| read.mega         | parsing MEGA Nexus output                                                                  |
+| read.mega_tabular | parsing MEGA tabular output                                                                |
+| read.mrbayes      | parsing output of MrBayes                                                                  |
+| read.newick       | parsing Newick string, with the ability to parse node label as support values              |
+| read.nexus        | parsing standard NEXUS file (re-exported from ape)                                         |
+| read.nhx          | parsing NHX file including the output of PHYLDOG and RevBayes                              |
+| read.paml_rst     | parsing rst file (output of BaseML or CodeML)                                              |
+| read.phylip       | parsing phylip file (phylip alignment + Newick string)                                     |
+| read.phylip.seq   | parsing multiple sequence alignment from phylip file                                       |
+| read.phylip.tree  | parsing newick string from phylip file                                                     |
+| read.phyloxml     | parsing phyloXML file                                                                      |
+| read.r8s          | parsing output of r8s                                                                      |
+| read.raxml        | parsing output of RAxML                                                                    |
+| read.tree         | parsing newick string (re-exported from ape)                                               |
+
+Among those, we may use `read.tree`, `read.fasta`, `read.raxml`, `read.beast`, `read.mega` and `read.hyphy` in our work.
+
+Here is the example of reading tree.
+
+```{r}
+# newick trees are usuall in plain txt format with suffix '.txt' or '.tree'
+tree <- read.tree('sample_tree.txt')
+tree
+```
+
+Using `read.tree` will load newick trees as `phylo` objects. It is the method from package `ape`.
+
+```{r}
+tree %>% class()
+```
+
+`treeio` uses `treedata` objects, which can be converted to/from `phylo` objects.
+
+```{r}
+tree <- tree %>% as.treedata()
+tree %>% class()
+
+tree <- tree %>% as.phylo()
+tree %>% class()
+```
+
+`ggtree` can handle both `phylo` and `treedata` but sometimes conversion is needed to use functions for some other packages.
+
+For example, to save newick tree using `write.tree()` from `ape`, you need to convert `treedata` objects to `phylo` objects
+
+```{r, eval = F}
+tree <- read.tree('sample_tree.txt') %>% as.treedata()
+tree %>% write.tree('sample_tree.tree')
+```
+
+Task: fix the error in the block below.
+
+```{r}
+
+```
+
+### Convert `treedata` or `phylo` to `tibble`
+
+```{r}
+
+tree <- tree %>% as_tibble()
+
+# the other way
+
+tree <- tree %>% as.phylo()
+tree <- tree %>% as.treedata()
+```
+
+Notice once the tree is converted to a tibble, it is just like any other tibbles we have worked with.
+
+This is how we can manipulate tree with data. Next week we will cover more.
+
+## Plot tree using `ggtree`
+
+### basic of `ggtree`
+
+Let's plot our first `ggtree` plot.
+
+```{r}
+tree %>% ggtree()
+```
+
+This is equivalent to:
+
+```{r}
+tree %>% ggplot(aes(x,y)) + 
+  geom_tree() + theme_tree()
+```
+
+We can change how the lines look like.
+
+```{r}
+ggtree(tree, color="firebrick", size=2, linetype="dotted")
+```
+
+By default, the tree is viewed in ladderize form, user can set the parameter `ladderize = FALSE` to disable it.
+
+```{r}
+ggtree(tree, ladderize=FALSE)
+```
+
+The `branch.length` is used to scale the edge, user can set the parameter `branch.length = "none"` to only view the tree topology (cladogram) or other numerical variables to scale the tree.
+
+```{r}
+ggtree(tree, branch.length="none")
+```
+
+### layouts of a phylogenetic tree
+
+```{r, fig.width=8, fig.height=8}
+library(patchwork)
+set.seed(1789-12-11)
+tree <- rtree(50)
+p0 <- ggtree(tree) 
+p1 <- ggtree(tree, layout="roundrect") + labs(title = 'rounded\nrectangular')
+p2 <- ggtree(tree, layout="slanted") + labs(title = 'slanted')
+p3 <- ggtree(tree, layout="ellipse") + labs(title = 'ellipse')
+p4 <- ggtree(tree, layout="circular") + labs(title = 'circular')
+p5 <- ggtree(tree, layout="fan", open.angle=120) + labs(title = 'fan')
+p6 <- ggtree(tree, layout="equal_angle") + labs(title = 'Unrooted:\nequal-angle')
+p7 <- ggtree(tree, layout="daylight") + labs(title = 'Unrooted:\ndaylight')
+p8 <- ggtree(tree, branch.length='none') + labs(title = 'Cladogram')
+p9 <- ggtree(tree, layout="ellipse", branch.length="none") + labs(title = 'Cladogram:\nellipse')
+p10 <- ggtree(tree, branch.length='none', layout='circular') + labs(title = 'Cladogram:\ncircular')
+p11 <- ggtree(tree, layout="daylight", branch.length = 'none') + labs(title = 'Cladogram:\nunrooted')
+
+p0 + p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + p11 
+```
+
+Other modifications:
+
+```{r}
+p12 <- ggtree(tree) + scale_x_reverse()
+p13 <- ggtree(tree) + coord_flip()
+p14 <- ggtree(tree) + layout_dendrogram()
+p15 <- ggplotify::as.ggplot(ggtree(tree), angle=-30, scale=.9)
+p16 <- ggtree(tree, layout='slanted') + coord_flip()
+p17 <- ggtree(tree, layout='slanted', branch.length='none') + layout_dendrogram()
+p18 <- ggtree(tree, layout='circular') + xlim(-10, NA)
+p19 <- ggtree(tree) + layout_inward_circular()
+p20 <- ggtree(tree) + layout_inward_circular(xlim=15)
+
+p12 + p13 + p14 + p15 + p16 + p17 + p18 + p19 + p20 + plot_annotation(tag_levels = "A")
+```
+
+### Displaying Tree Components
+
+Displaying treescale (evolution distance)
+
+```{r}
+p0 + geom_treescale()
+```
+
+Adding x-axis scale and scale
+
+```{r}
+p0 + geom_treescale() + theme_tree2()
+```
+
+Displaying nodes/tips
+```{r}
+p0 + geom_point(color = 'royalblue')
+
+p0 + geom_tippoint(shape = 5)
+
+p0 + geom_nodepoint(color = 'salmon', shape = 1)
+
+p0 + geom_tippoint(shape = 5, color = 'royalblue') + 
+   geom_nodepoint(color = 'salmon', shape = 1)
+
+```
+
+Display labels
+
+```{r}
+p21 <- p0 + geom_tiplab(size=2, color="purple")
+
+p22 <- p0 + geom_nodelab(aes(label = node), hjust = -0.4, size = 2)
+
+p23 <- p0 + geom_tiplab(size=2, color="blue", geom = 'label')
+
+p24 <- p0 + geom_tiplab(as_ylab=TRUE, size = 3, color='firebrick')
+
+
+p21 + p22 + p23 + p24
+```
+

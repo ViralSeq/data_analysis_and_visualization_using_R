@@ -86,9 +86,9 @@ Hints:
 gapdata2007 %>% 
   filter(continent == 'Americas') %>% 
   ggplot(aes(x = fct_reorder(country, lifeExp), y = lifeExp)) + 
-  geom_col(fill = NA, color = "deepskyblue") + 
+  geom_col(fill = NA, color = 'deepskyblue') + 
   coord_flip() + 
-  geom_text(aes(label = round(lifeExp, digits = 1))) + 
+  geom_text(aes(label = round(lifeExp, 1))) + 
   theme_classic()
 
 ```
@@ -246,7 +246,7 @@ Another easy way for scientific publications is to use package **ggsci**.
 library(ggsci)
 
 p9 <- p0 +
-  scale_color_jama()
+  scale_color_rickandmorty()
 p9
 ```
 

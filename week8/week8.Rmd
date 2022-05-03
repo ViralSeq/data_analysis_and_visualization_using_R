@@ -1,0 +1,278 @@
+---
+title: "Week 8"
+author: "Shuntai Zhou"
+date: '2022-05-03'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
+```
+
+# Plotting Phylogenetic trees with R
+
+## 1. Week 7
+
+-   Basic of phylogenetic tree
+-   Packages to manage trees in R
+-   Loading phylogenetic tree in R
+-   Plot tree using `ggtree`
+
+## 2. Week 8
+
+-   Link tree with data
+-   Plot tree with data
+-   Visual exploration of phylogentic trees
+
+## Sync your Repo
+
+-   Open GitHub Desktop
+-   Click "Current Branch" (should be "Main")
+-   You will see a branch of "upstream/main". Select branch "Main", click "Choose a branch to Merge into **Main**".
+-   Choose "upstream/main", merge into your own "Main". After merging, click "Push Origin".
+
+```{r}
+library(treedataverse)
+library(patchwork)
+```
+
+## Manipulate tree with data
+
+### Convert tree as a tibble
+
+generate a random tree with 4 tips
+
+```{r}
+set.seed(2022)
+tree <- rtree(4)
+tree
+```
+
+```{r}
+tree %>% ggtree() + 
+  geom_label(aes(label = node, fill = isTip)) + 
+  theme(legend.position = 'none')
+```
+
+```{r}
+treedata <- tree %>% as_tibble()
+```
+
+### Access related nodes
+
+[**tidytree**](https://cran.r-project.org/package=tidytree) provides several verbs to filter related nodes, including [`child()`](https://rdrr.io/pkg/tidytree/man/child.html), [`parent()`](https://rdrr.io/pkg/tidytree/man/parent.html), [`offspring()`](https://rdrr.io/pkg/tidytree/man/offspring.html), [`ancestor()`](https://rdrr.io/pkg/tidytree/man/ancestor.html), [`sibling()`](https://rdrr.io/pkg/tidytree/man/sibling.html) and [`MRCA()`](https://rdrr.io/pkg/tidytree/man/MRCA.html)
+
+```{r}
+tree %>% child(7)
+tree %>% parent(7)
+tree %>% offspring(6)
+tree %>% ancestor(7)
+tree %>% sibling(7)
+tree %>% MRCA(7, 4)
+```
+
+### Link external data to phylogeny
+
+A wide range of heterogeneous data, including phenotypic data, experimental data, and clinical data, *etc.*, that need to be integrated and linked to phylogeny. For example, in the study of viral evolution, tree nodes may be associated with epidemiological information, such as location, age, and subtype. Functional annotations may need to be mapped onto gene trees for comparative genomics studies.
+
+We can convert tree to a `tibble` and use `left_join`, `right_join`, `full_join` to join the tree with external data, depending on your data structure.
+
+Let's use the previous tree as an example.
+
+First, let's create a mock external dataset
+
+```{r}
+data <- tibble(
+  label = c('t1', 't2', 't3', 't4'),
+  group = factor(c(1,2,2,1)),
+  trait = c(200,300,400, 500)
+)
+```
+
+Second, we combine the external data with the tree.
+
+```{r}
+joined_tree <- tree %>% as_tibble() %>% left_join(data) %>% as.treedata()
+```
+
+Plot the tree with traits in the `aes()`.
+
+```{r}
+p <- joined_tree %>%  ggtree() + 
+  geom_tiplab(offset = .1) +
+  geom_tippoint(aes(size= trait,color = group)) + 
+  scale_size_continuous(range = c(2,5))
+
+p
+
+```
+
+## **Visualize a Tree with Multiple Sequence Alignments**
+
+The [`msaplot()`](https://rdrr.io/pkg/ggtree/man/msaplot.html) accepts a tree (output of [`ggtree()`](https://rdrr.io/pkg/ggtree/man/ggtree.html)) and a fasta file, then it can visualize the tree with sequence alignment. We can specify the `width` (relative to the tree) of the alignment and adjust the relative position by `offset`. A specific slice of the alignment can also be displayed by specifying the `window` parameter.
+
+```{r}
+seq <- read.fasta('seq.fasta')
+
+msaplot(p, seq, offset=0.5, width=0.5,height = 0.5)
+```
+
+## **Visualize a Tree with an Associated Matrix**
+
+The [`gheatmap()`](https://rdrr.io/pkg/ggtree/man/gheatmap.html) function is designed to visualize the phylogenetic tree with a heatmap of an associated matrix (either numerical or categorical).
+
+Let's make a mock matrix for our tree.
+
+```{r}
+tree_matrix <- tibble(
+  a = c(10,25,20,13),
+  b = c(23,22,13,14),
+  c = c(10,19,28,15),
+)
+rownames(tree_matrix) = tree$tip.label
+
+gheatmap(p, tree_matrix, offset = 0.5, width = 0.5) +
+   scale_fill_viridis_c(option="E", name="continuous\nvalue")
+```
+
+### Rerooting Tree
+
+A phylogenetic tree can be rerooted with a specified `outgroup`. The [**ape**](https://cran.r-project.org/package=ape) package implements a [`root()`](https://rdrr.io/pkg/ape/man/root.html) method to reroot a tree stored in a `phylo` object, while the [**treeio**](http://bioconductor.org/packages/treeio) package provides the [`root()`](https://rdrr.io/pkg/ape/man/root.html) method for `treedata` object. This method is designed to re-root a phylogenetic tree with associated data concerning the specified `outgroup` or at the specified `node` based on the [`root()`](https://rdrr.io/pkg/ape/man/root.html) implemented in the [**ape**](https://cran.r-project.org/package=ape) package.
+
+```{r}
+joined_tree2 <- joined_tree %>% root(outgroup = "t3", edgelabel = TRUE)
+
+p2 <- joined_tree2 %>%  ggtree() + 
+  geom_tiplab(offset = .1) +
+  geom_tippoint(aes(size= trait,color = group)) + 
+  scale_size_continuous(range = c(2,5))
+
+p + p2
+```
+
+### Remove tips in a tree
+
+Sometimes we want to remove selected tips from a phylogenetic tree. This is due to several reasons, including low sequence quality, errors in sequence assembly, an alignment error in part of the sequence, an error in phylogenetic inference, *etc*.
+
+We can use `drop.tip()` function to remove specific tip(s).
+
+```{r}
+to_drop <- c("t1")
+tree_reduced <- joined_tree %>% drop.tip(to_drop)
+
+p3 <- tree_reduced %>%  ggtree() + 
+  geom_tiplab(offset = .1) +
+  geom_tippoint(aes(size= trait,color = group)) + 
+  scale_size_continuous(range = c(2,5))
+
+p + p3
+```
+
+## A practical example
+
+Matt asks for help to build some fancy tree plots.
+
+He has:
+
+1.  Tree file
+2.  A data table for sample collection date, type of samples, etc
+3.  A g2p data sheet.
+
+He wants to:
+
+1.  Circular tree
+2.  tip label color coded by weeks post infection in rainbow color palette, but not purple.
+3.  QVOA sequences in purple color, and labeled as 'QVOA' on the tree.
+4.  Add one column matrix heatmap for co-receptor tropism.
+
+#### Load required libraries
+
+```{r}
+library(tidyverse)
+library(treedataverse)
+```
+
+#### Read the tree file
+
+We open the tree file and figure out it is in the newick format. We can use the `read.tree` function to load the tree.
+
+```{r}
+tree <- read.tree('CAP257.tree')
+```
+
+#### Load two data sheets, and join them.
+
+```{r}
+data1 <- read_csv('CAP257.tag.csv')
+data2 <- read_csv('CAP257.g2p.csv')
+
+meta_data <- full_join(data1, data2, by = c('label' = 'header')) %>% 
+  mutate(
+  FPR_cat = ifelse(FPR >=10, ">= 10%, R5", 
+                   ifelse(FPR <= 2, "<= 2%, X4/dual", "2-10%")),
+  FPR_cat = ifelse(is.na(FPR), NA, FPR_cat)
+)
+```
+
+#### Join the tree with external data
+
+```{r}
+new_tree <- tree %>% as_tibble %>% full_join(meta_data)  %>% as.treedata()
+```
+
+#### Reroot the tree to the earliest sample
+
+```{r}
+new_tree <- root(new_tree, 
+                 outgroup = "CAP257_2000_007WPI_ENV_C2C3_NGS_012_0_003_1", 
+                 edgelabel = TRUE)
+```
+
+#### Remove sequences that were hypermutated
+
+```{r}
+# get the list of hypermutated sequences
+hypermut <- meta_data %>%
+  filter(hypermut == 'Y') %>% 
+  pull(label)
+
+new_tree <- new_tree %>% drop.tip(hypermut)
+```
+
+#### Select colors for tree labels
+
+```{r}
+n_tp <- meta_data$tp %>% unique() %>% length() - 2
+colors <- rainbow(n_tp, end = 0.7)
+colors <- c(colors, 'ivory4', 'magenta4')
+```
+
+#### Plot tree color with tip labels color coded by their time points
+
+```{r}
+p <- new_tree %>% 
+  ggtree(layout="circular") + 
+  geom_tiplab(aes(color=tp), size = 0.7) + 
+  guides(color = guide_legend(override.aes = list(size = 5))) +
+  scale_color_manual(values = colors, name = "Time Point")
+p
+
+```
+
+#### Add the one column heatmap of co-receptor tropism to the tree
+
+```{r, fig.width= 8, fig.height=8}
+df <- tibble(FPR = meta_data$FPR_cat)
+
+rownames(df) <- meta_data$label
+
+p1 <- gheatmap(p, df, offset = 0.015, width=.2,
+               colnames = F) + 
+    scale_fill_discrete(name="Geno2Pheno\nFPR value") 
+
+p1 <- p1 + theme(legend.text = element_text(size = 20),
+           legend.title = element_text(size = 22)
+           )
+p1
+ggsave('CAP257.png', p1, height = 14, width = 14)
+```

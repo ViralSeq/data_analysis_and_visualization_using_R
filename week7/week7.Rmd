@@ -230,6 +230,9 @@ To install `treedataverse`:
 # first install BiocManager
 install.packages("BiocManager")
 
+#install remotes
+BiocManager::install("remotes")
+
 # install treedataverse
 BiocManager::install("YuLab-SMU/treedataverse")
 
@@ -275,7 +278,7 @@ Among those, we may use `read.tree`, `read.fasta`, `read.raxml`, `read.beast`, `
 Here is the example of reading tree.
 
 ```{r}
-# newick trees are usuall in plain txt format with suffix '.txt' or '.tree'
+# newick trees are usual in plain txt format with suffix '.txt' or '.tree'
 tree <- read.tree('sample_tree.txt')
 tree
 ```
@@ -302,7 +305,7 @@ For example, to save newick tree using `write.tree()` from `ape`, you need to co
 
 ```{r, eval = F}
 tree <- read.tree('sample_tree.txt') %>% as.treedata()
-tree %>% write.tree('sample_tree.tree')
+tree %>% as.phylo() %>%  write.tree('sample_tree.tree')
 ```
 
 Task: fix the error in the block below.

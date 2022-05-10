@@ -35,6 +35,7 @@ library(tidyverse)
 library(ggpubr)
 library(finalfit)
 library(gapminder)
+library(patchwork)
 theme_set(theme_bw())
 
 # Create object gapdata from object gapminder
@@ -119,7 +120,7 @@ The median life expectancy is lower in Africa than in any other continent. The v
 ### Cheat Sheet for comparing continuous data
 
 | *normal distribution?*   | Two groups          | Paired?                   | Multiple groups     |
-|-------------------|-----------------|-------------------|-----------------|
+|-------------------|------------------|-------------------|------------------|
 | Yes - parametric tests   | *t*-test            | paired *t-*test           | one-way ANOVA       |
 | No - nonparametric tests | Mann-Whitney U test | Wilcoxon signed-rank test | Kruskal-Wallis test |
 
@@ -266,7 +267,6 @@ p3 <- africa_data %>%                      # save plot as p3
   geom_boxplot(aes(fill = factor(year))) + # colour boxplot
   theme(legend.position = "none")          # remove legend
 
-library(patchwork)                         # great for combining plots
 p1 / p2 | p3
 ```
 
@@ -343,3 +343,50 @@ p1 + p3 + p5 + p2 + p4 + p6
 ### Conclusions:
 
 **Simply use non-parametric tests for all analysis.**
+
+
+### Example
+
+Rachel wants to compare the CD4 values of her 3 Malawi HIV-1 cohort. She already made a table for CD4 values as in `CD4_cohort.csv`. We want to compare the CD4 value of the 3 groups with proper tests. 
+
+First of all, we need to transform the table to a computer-friendly table. 
+
+```{r}
+data <- read_csv('CD4_cohort.csv')
+
+data <- data %>%  pivot_longer(
+  everything(),
+  names_to = "Cohort",
+  values_to = "CD4"
+)
+```
+
+Plot the data.
+
+```{r}
+p1 <- data %>% ggplot(aes(x = CD4)) + 
+  geom_histogram(bins = 10) + 
+  facet_wrap(~ Cohort)
+
+p2 <- data %>% ggplot(aes(sample = CD4)) +         
+  geom_qq() + 
+  geom_qq_line(colour = "blue") + 
+  facet_wrap(~ Cohort) 
+
+p3 <- data %>% ggplot(aes(y = CD4, x = Cohort)) + 
+  geom_boxplot(aes(color = Cohort)) + 
+  geom_jitter(color = "lightgrey", size = 3) +
+  theme(legend.position = "none")
+ 
+p1 / p2 | p3
+```
+
+We will use non-parametric tests for the tests.
+
+```{r}
+my_comparisons = list(c("A", "B"), c("B", "C"), c("A", "C"))
+p3 + stat_compare_means(comparisons = my_comparisons, label = "p.signif", size = 5) +
+  stat_compare_means(label.y = 900, size = 6)
+
+```
+

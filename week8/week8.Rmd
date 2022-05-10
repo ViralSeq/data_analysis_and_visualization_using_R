@@ -262,7 +262,7 @@ p
 #### Add the one column heatmap of co-receptor tropism to the tree
 
 ```{r, fig.width= 8, fig.height=8}
-df <- tibble(FPR = meta_data$FPR_cat)
+df <- data.frame(FPR = meta_data$FPR_cat)
 
 rownames(df) <- meta_data$label
 

@@ -220,7 +220,7 @@ library(treedataverse)
 -   ggtree: plotting plylogeny in ggplot2 interface
 -   ggtreeExtra: presenting data with a phylogeny side-by-side for a rectangular layout or in outer rings for a circular layout
 
-### Intall `treedataverse` suite
+### Install `treedataverse` suite
 
 `treedataverse` is available on `bioconductor`. It can not be installed using regular `install.packages` function.
 
@@ -238,7 +238,7 @@ BiocManager::install("YuLab-SMU/treedataverse")
 
 ```
 
-You may see some error massages regarding missing packages. Instal them using `BiocManager::install()`
+You may see some error massages regarding missing packages. Install them using `BiocManager::install()`
 
 ## Get tree data using `treeio`
 
@@ -247,7 +247,7 @@ You may see some error massages regarding missing packages. Instal them using `B
 `treeio` has a number of functions to import trees of different formats and turn them into the `treedata` object.
 
 | Parser function   | Description                                                                                |
-|:---------------------|:------------------------------------------------|
+|:----------------------|:------------------------------------------------|
 | read.astral       | parsing output of ASTRAL                                                                   |
 | read.beast        | parsing output of BEAST                                                                    |
 | read.codeml       | parsing output of CodeML (rst and mlc files)                                               |
@@ -418,6 +418,7 @@ p0 + geom_treescale() + theme_tree2()
 ```
 
 Displaying nodes/tips
+
 ```{r}
 p0 + geom_point(color = 'royalblue')
 
@@ -444,4 +445,3 @@ p24 <- p0 + geom_tiplab(as_ylab=TRUE, size = 3, color='firebrick')
 
 p21 + p22 + p23 + p24
 ```
-

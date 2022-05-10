@@ -1,0 +1,345 @@
+---
+title: "Week 9"
+author: "Shuntai Zhou"
+date: '2022-05-10'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
+```
+
+# Data Analysis
+
+-   Week 9: Continuous data
+
+-   Week 10: Linear regression
+
+-   Week 11: Categorical data
+
+-   Week 12: Logistic regression
+
+-   Week 13: Time-to-event data and survival
+
+## Continous Data
+
+-   Continuous data can be measured
+-   Categorical data can be counted
+
+### Get and check the data
+
+```{r}
+
+# Load packages
+library(tidyverse)
+library(ggpubr)
+library(finalfit)
+library(gapminder)
+theme_set(theme_bw())
+
+# Create object gapdata from object gapminder
+gapdata <- gapminder
+
+```
+
+Take a quick look at the data and check missing data.
+
+```{r}
+glimpse(gapdata)
+missing_glimpse(gapdata)
+```
+
+summary statistics for each variable
+
+```{r}
+ff_glimpse(gapdata)
+```
+
+### Question
+
+We will start by looking at the life expectancy of populations over time and in different geographical regions.
+
+### Plot the data
+
+Always plot your data first. The shape of the data. Is it normal? Is it skewed? Does it differ between regions and years?
+
+There are three useful plots which can help here:
+
+-   Histograms: examine shape of data and compare groups;
+-   Q-Q plots: are data normally distributed?
+-   Box-plots: identify outliers, compare shape and groups.
+
+#### Histogram
+
+```{r}
+gapdata %>% 
+  filter(year %in% c(2002, 2007)) %>%
+  ggplot(aes(x = lifeExp)) +       # remember aes()
+  geom_histogram(bins = 20) +      # histogram with 20 bars
+  facet_grid(year ~ continent)       
+```
+
+What can we see? - life expectancy in Africa is lower than in other regions. - we have little data for Oceania given there are only two countries included, Australia and New Zealand. - Africa and Asia have greater variability in life expectancy by country than in the Americas or Europe. - the data follow a reasonably normal shape, with Africa 2002 a little right skewed.
+
+#### Quantile-quantile (Q-Q) plot
+
+A Q-Q plot is a graphical method for comparing the distribution (think shape) of our own data to a theoretical distribution, such as the normal distribution.
+
+A Q-Q plot simply plots the quantiles for our data against the theoretical quantiles for a particular distribution (the default shown below is the normal distribution). If our data follow that distribution (e.g., normal), then our data points fall on the theoretical straight line.
+
+```{r}
+gapdata %>% 
+  filter(year %in% c(2002, 2007)) %>%
+  ggplot(aes(sample = lifeExp)) +      # Q-Q plot requires 'sample'
+  geom_qq() +                          # defaults to normal distribution
+  geom_qq_line(colour = "blue") +      # add the theoretical line
+  facet_grid(year ~ continent)
+```
+
+What can we see? We are looking to see if the data (dots) follow the straight line which we included in the plot. These do reasonably, except for Africa which is curved upwards at each end. This is the right skew we could see on the histograms too. If your data do not follow a normal distribution, then you should avoid using a t-test or ANOVA when comparing groups. Non-parametric tests are one alternative.
+
+#### Boxplots
+
+Boxplots are our preferred method for comparing a continuous variable such as life expectancy across a categorical explanatory variable. For continuous data, box plots are a lot more appropriate than bar plots with error bars (also known as dynamite plots).
+
+-   The box represents the median (bold horizontal line in the middle) and interquartile range (where 50% of the data sits).
+-   The lines (whiskers) extend to the lowest and highest values that are still within 1.5 times the interquartile range.
+-   Outliers (anything outwith the whiskers) are represented as points.
+
+```{r}
+gapdata %>% 
+  filter(year %in% c(2002, 2007)) %>%
+  ggplot(aes(x = continent, y = lifeExp)) +
+  geom_boxplot() +
+  facet_wrap(~ year)
+```
+
+The median life expectancy is lower in Africa than in any other continent. The variation in life expectancy is greatest in Africa and smallest in Oceania. The data in Africa looks skewed, particularly in 2002 - the lines/whiskers are unequal lengths.
+
+### Cheat Sheet for comparing continuous data
+
+| *normal distribution?*   | Two groups          | Paired?                   | Multiple groups     |
+|-------------------|-----------------|-------------------|-----------------|
+| Yes - parametric tests   | *t*-test            | paired *t-*test           | one-way ANOVA       |
+| No - nonparametric tests | Mann-Whitney U test | Wilcoxon signed-rank test | Kruskal-Wallis test |
+
+### *t-*test
+
+A *t*-test is used to compare the means of two groups of continuous measurements. We will discuss two types of *t-*test here.
+
+#### Two-sample *t*-tests
+
+We would like to compare the life expectancy in Asian countries and European countries in the year 2007. We assume that the mean life expectancy of each country does not depend on the life expectancies of other countries in the group. In other words, that each measurement is independent.
+
+```{r}
+ttest_data <- gapdata %>%                    # save as object ttest_data
+  filter(year == 2007) %>%                   # 2007 only
+  filter(continent %in% c("Asia", "Europe")) # Asia/Europe only
+
+ttest_result <- ttest_data %>%               # example using pipe
+  t.test(lifeExp ~ continent, data = .)      # note data = ., see below
+ttest_result
+```
+
+The p-value can be accessed as:
+
+```{r}
+ttest_result$p.value
+```
+
+The confidence interval of the difference in mean life expectancy between the two continents:
+
+```{r}
+ttest_result$conf.int
+```
+
+#### Paird *t-*test
+
+Consider that we want to compare the difference in life expectancy in Asian countries between 2002 and 2007. The overall difference is not impressive in the boxplot.
+
+We can plot differences at the country level directly.
+
+```{r}
+paired_data <- gapdata %>%             # save as object paired_data
+  filter(year %in% c(2002, 2007)) %>%  # 2002 and 2007 only
+  filter(continent == "Asia")          # Asia only
+
+paired_data %>%      
+  ggplot(aes(x = year, y = lifeExp, 
+             group = country)) +       # for individual country lines
+  geom_line()
+```
+
+To perform the paired *t-*test:
+
+```{r}
+paired_data %>% 
+  t.test(lifeExp ~ year, data = ., paired = TRUE)
+```
+
+The results show a highly significant difference (*p*-value = 0.000000000000002). The average difference of 1.5 years is highly consistent between countries, as shown on the line plot, and this differs from zero. It is up to you the investigator to interpret the relevance of the effect size of 1.5 years in reporting the finding. A highly significant *p*-value does not necessarily mean there is a (clinically) significant change between the two groups (or in this example, two time points).
+
+#### What if I run the wrong test?
+
+Try out the non-paired *t-*test with the `paired_data`.
+
+```{r}
+paired_data %>% 
+  t.test(lifeExp ~ year, data = .)
+```
+
+### One sample *t-*test
+
+Sometimes we only have one group and want to ask if the mean of the group is significantly different from a given value. For instance, we can test whether the mean life expectancy in each continent was significantly different from 77 years in 2007.
+
+```{r}
+library(broom)
+gapdata %>% 
+  filter(year == 2007) %>%          # 2007 only
+  group_by(continent) %>%           # split by continent
+  do(                               # dplyr function
+    t.test(.$lifeExp, mu = 77) %>%  # compare mean to 77 years 
+      tidy()                        # tidy into tibble
+  )
+```
+
+The mean life expectancy for Europe and Oceania do not significantly differ from 77, while the others do. In particular, look at the confidence intervals of the results above (`conf.low` and `conf.high` columns) and whether they include or exclude 77. For instance, Oceania's confidence intervals are especially wide as the dataset only includes two countries. Therefore, we can't conclude that its value isn't different to 77, but that we don't have enough observations and the estimate is uncertain. It doesn't make sense to report the results of a statistical test - whether the *p*-value is significant or not - without assessing the confidence intervals.
+
+### One-way ANOVA
+
+We often need to compare the mean of more than two groups. For example, we may be interested in comparing life expectancy across 3 continents such as the Americas, Europe and Asia.
+
+```{r}
+gapdata %>% 
+  filter(year == 2007) %>% 
+  filter(continent %in% 
+           c("Americas", "Europe", "Asia")) %>% 
+  ggplot(aes(x = continent, y=lifeExp)) +
+  geom_boxplot()
+```
+
+Analysis of variance (ANOVA) is a collection of statistical tests which can be used to test the difference in means between two or more groups.
+
+In base R form, it produces an ANOVA table which includes an F-test. This so-called omnibus test tells you whether there are any differences in the comparison of means of the included groups. Again, it is important to plot carefully and be clear what question you are asking.
+
+```{r}
+aov_data <- gapdata %>% 
+  filter(year == 2007) %>% 
+  filter(continent %in% c("Americas", "Europe", "Asia"))
+
+fit = aov(lifeExp ~ continent, data = aov_data) 
+summary(fit)
+```
+
+We can conclude from the significant F-test that the mean life expectancy across the three continents is not the same. This does not mean that all included groups are significantly different from each other.
+
+### Non-parametric tests
+
+If your data is a different shape to normal, or the ANOVA assumptions are not fulfilled, you can perform non-parametric tests.
+
+#### Non-parametric test for comparing two groups
+
+The Mann-Whitney U test is also called the Wilcoxon rank-sum test and uses a rank-based method to compare two groups (note the Wilcoxon signed-rank test is for paired data). Rank-based just means ordering your grouped continuous data from smallest to largest value and assigning a rank (1, 2, 3 ...) to each measurement.
+
+We can use it to test for a difference in life expectancies for African countries between 1982 and 2007. Let's do a histogram, Q-Q plot and boxplot first.
+
+```{r}
+
+africa_data <- gapdata %>%                          
+  filter(year %in% c(1982, 2007)) %>%      # only 1982 and 2007
+  filter(continent %in% c("Africa"))       # only Africa
+
+p1 <- africa_data %>%                      # save plot as p1
+  ggplot(aes(x = lifeExp)) + 
+  geom_histogram(bins = 15) +
+  facet_wrap(~year)
+
+p2 <- africa_data %>%                      # save plot as p2
+  ggplot(aes(sample = lifeExp)) +          # `sample` for Q-Q plot
+  geom_qq() + 
+  geom_qq_line(colour = "blue") + 
+  facet_wrap(~year)
+
+p3 <- africa_data %>%                      # save plot as p3
+  ggplot(aes(x = factor(year),             # try without factor(year) to
+             y = lifeExp)) +               # see the difference
+  geom_boxplot(aes(fill = factor(year))) + # colour boxplot
+  theme(legend.position = "none")          # remove legend
+
+library(patchwork)                         # great for combining plots
+p1 / p2 | p3
+```
+
+The data is a little skewed based on the histograms and Q-Q plots. The difference between 1982 and 2007 is not particularly striking on the boxplot.
+
+```{r}
+africa_data %>% 
+  wilcox.test(lifeExp ~ year, data = .)
+```
+
+We can also do paired test.
+
+```{r}
+africa_data %>% 
+  wilcox.test(lifeExp ~ year, data = ., paired = T)
+```
+
+#### Non-parametric test for comparing more than two groups
+
+The non-parametric equivalent to ANOVA, is the Kruskal-Wallis test.
+
+```{r}
+gapdata %>% 
+  filter(year == 2007) %>% 
+  filter(continent %in% c("Americas", "Europe", "Asia")) %>% 
+  kruskal.test(lifeExp~continent, data = .)
+```
+
+### Plotting statistically tests with your plot, including pairwise comparison.
+
+Use `ggpubr` to plot the statistically tests on your boxplot.
+
+Here is an example
+
+```{r}
+p0 <- gapdata %>% 
+  filter(year == 2007) %>% 
+  filter(continent %in% 
+           c("Americas", "Europe", "Asia")) %>% 
+  ggplot(aes(x = continent, y=lifeExp, color = continent)) +
+  ylim(0, 110) +
+  geom_boxplot() + 
+  theme(legend.position = 'none')
+  
+
+p1 <- p0 + 
+  stat_compare_means(label.y = 100) # from ggpubr
+
+p2 <- p0 + 
+  stat_compare_means(method = 'anova', label.y = 100) # from ggpubr
+
+# set comparisons
+my_comparisons <- list( c("Americas", "Europe"), c("Americas", "Asia"), c("Europe", "Asia"))
+
+p3 <- p0 +
+  stat_compare_means(comparisons = my_comparisons) + 
+  stat_compare_means(label.y = 100)
+
+p4 <- p0 + 
+  stat_compare_means(comparisons = my_comparisons, method = "t.test") + 
+  stat_compare_means(method = 'anova', label.y = 100)
+
+p5 <- p0 +
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif" ) + 
+  stat_compare_means(label.y = 100)
+
+p6 <- p0 + 
+  stat_compare_means(comparisons = my_comparisons, method = "t.test", label = "p.signif") + 
+  stat_compare_means(method = 'anova', label.y = 100)
+  
+p1 + p3 + p5 + p2 + p4 + p6 
+```
+
+### Conclusions:
+
+**Simply use non-parametric tests for all analysis.**

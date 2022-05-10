@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
 
 -   Week 13: Time-to-event data and survival
 
-## Continous Data
+## Continuous Data
 
 -   Continuous data can be measured
 -   Categorical data can be counted
@@ -120,7 +120,7 @@ The median life expectancy is lower in Africa than in any other continent. The v
 ### Cheat Sheet for comparing continuous data
 
 | *normal distribution?*   | Two groups          | Paired?                   | Multiple groups     |
-|-------------------|------------------|-------------------|------------------|
+|------------------|------------------|------------------|------------------|
 | Yes - parametric tests   | *t*-test            | paired *t-*test           | one-way ANOVA       |
 | No - nonparametric tests | Mann-Whitney U test | Wilcoxon signed-rank test | Kruskal-Wallis test |
 
@@ -344,12 +344,11 @@ p1 + p3 + p5 + p2 + p4 + p6
 
 **Simply use non-parametric tests for all analysis.**
 
-
 ### Example
 
-Rachel wants to compare the CD4 values of her 3 Malawi HIV-1 cohort. She already made a table for CD4 values as in `CD4_cohort.csv`. We want to compare the CD4 value of the 3 groups with proper tests. 
+Rachel wants to compare the CD4 values of her 3 Malawi HIV-1 cohort. She already made a table for CD4 values as in `CD4_cohort.csv`. We want to compare the CD4 value of the 3 groups with proper tests.
 
-First of all, we need to transform the table to a computer-friendly table. 
+First of all, we need to transform the table to a computer-friendly table.
 
 ```{r}
 data <- read_csv('CD4_cohort.csv')
@@ -391,4 +390,3 @@ p3 + stat_compare_means(comparisons = my_comparisons, label = "p.signif", size =
   stat_compare_means(label.y = 900, size = 6) 
 
 ```
-

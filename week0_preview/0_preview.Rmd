@@ -1,89 +1,121 @@
 ---
-title: "Data analysis and visulization using R"
+title: "Data Analysis and Visualization Using R"
 output:
   html_document:
-    df_print: paged
+    df_print: tibble
+    toc: true
+    toc_float: true
+    theme: sandstone
+    highlight: haddock
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T, results = "asis", warning = F, message = F)
 ```
 
-### ***What you can learn from this tutorial?***
+## Syllabus
 
-#### R basics
-- Understanding the strength and weakness of R. 
-- Install R and RStudio. Manage packages. 
-- data types, functions.
-- Working with data frame. 
++---------------------------+------------------------------------------------------+
+| Week                      | Topic                                                |
++===========================+======================================================+
+| 1                         | -   Syllabus review.                                 |
+|                           |                                                      |
+|                           | -   Installation of R and RStudio. Manage packages.  |
+|                           |                                                      |
+|                           | -   Introduction of Github.                          |
+|                           |                                                      |
+|                           | -   Set up project                                   |
++---------------------------+------------------------------------------------------+
+| 2                         | -   R Basics                                         |
++---------------------------+------------------------------------------------------+
+| 3                         | -   Summarizing data                                 |
+|                           |                                                      |
+|                           | -   Generate publication-ready table using `tableby` |
++---------------------------+------------------------------------------------------+
+| 4                         | Plotting using R, basics                             |
+|                           |                                                      |
+|                           | -   Anatomy of \`ggplot\`                            |
+|                           |                                                      |
+|                           | -   Scatter plots                                    |
+|                           |                                                      |
+|                           | -   Line plots                                       |
+|                           |                                                      |
+|                           | -   Bar plots                                        |
+|                           |                                                      |
+|                           | -   Histograms                                       |
+|                           |                                                      |
+|                           | -   Multiple `geoms`, multiple `aes()`               |
++---------------------------+------------------------------------------------------+
+| 5                         | Plotting with R, tuning plots                        |
+|                           |                                                      |
+|                           | -   Scales                                           |
+|                           |                                                      |
+|                           | -   Colors                                           |
+|                           |                                                      |
+|                           | -   Titles and labels                                |
+|                           |                                                      |
+|                           | -   Themes                                           |
+|                           |                                                      |
+|                           | -   Save your plot                                   |
++---------------------------+------------------------------------------------------+
+| 6                         | Plotting Phylogenetic trees with R                   |
+|                           |                                                      |
+|                           | -   Basic of phylogenetic tree                       |
+|                           |                                                      |
+|                           | -   Packages to manage trees in R                    |
+|                           |                                                      |
+|                           | -   Loading phylogenetic tree in R                   |
+|                           |                                                      |
+|                           | -   Plot tree using `ggtree`                         |
++---------------------------+------------------------------------------------------+
+| 7                         | Plotting Phylogenetic trees with R                   |
+|                           |                                                      |
+|                           | -   Link tree with data                              |
+|                           |                                                      |
+|                           | -   Plot tree with data                              |
+|                           |                                                      |
+|                           | -   Visual exploration of phylogentic trees          |
++---------------------------+------------------------------------------------------+
+| 8                         | Data analysis - Continuous data                      |
++---------------------------+------------------------------------------------------+
+| 9                         | Data analysis - Linear regression                    |
++---------------------------+------------------------------------------------------+
+| 10                        | Data analysis - Categorical data                     |
++---------------------------+------------------------------------------------------+
+| 11                        | Data analysis - Logistic regression                  |
++---------------------------+------------------------------------------------------+
+| 12                        | Data analysis - Time-to-event data and survival      |
++---------------------------+------------------------------------------------------+
 
-#### Make Tables and Plots
-- Use R to summarize data.
-- Plotting your data. 
-- Fine tuning your plots.
 
-#### Data analysis
-- Work with continuous data.
-- Linear regression. 
-- Work with categorical data. 
-- Logistic regression. 
-- Time-to-event data and survival analysis.
+## What is unique in this class?
 
-#### Bioinformatics
-- `ape` package for reading and analyze sequence data
-- `ggtree` (and supplemental packages) to plot beautiful phylogenetic trees. 
-
-#### Extras
-- Work with missing data. 
-- Export your data. 
-- Version control. 
-
-### ***Why is special about this tutorial?***
-
-- Using biomedical data and cases as examples
-- Use the latest packages and features 
-- A great reference book. [R for Health Data Science](https://argoshare.is.ed.ac.uk/healthyr_book/)
-
-![](https://argoshare.is.ed.ac.uk/healthyr_book/images/healthyr_book_cover_20.png)
+-   Using real biomedical data and cases as examples
+-   Use the latest packages and features
+-   Publication-ready graphics and tables
 
 
-### ***Examples***
+## Examples
 
-#### 1. Summarizing data and make tables using a simple package
-
+### 1. Summarizing data and make tables using a simple package
 
 Load required libraries
+
 ```{r}
-library(dplyr)
 library(tidyverse)
 library(table1)
 library(knitr)
 library(arsenal)
-library(ggplot2)
 library(patchwork)
-library(tidyr)
 library(GGally)
 ```
 
 
-Read the data from a .csv file as a data frame.
+Load data from a `csv` file.
 
 ```{r}
-dfall <- read.csv("./data/data.csv", header = TRUE)
-```
-
-
-Quick examine the data. Look at the first 4 records. 
-
-```{r}
-dfall %>% head(4)
-```
-
-
-add labels, relevel some factors
-
-```{r}
-
+dfall <- read_csv('data/data.csv')
 
 dfall <- dfall %>% 
   mutate_at(c("TCS_PR","TCS_RT","TCS_IN", "TCS_V1V3", "PI_RT","PI_V1V3","DIST20_RT", "DIST20_V1V3"), funs(as.numeric)) %>% 
@@ -106,11 +138,9 @@ labels(dfall) <- c(ngscollectyr = 'Year of Diagnosis',
 
 ```
 
-Summarize the data
-
+Summarize the data, perform statistically comparison and generate publication-ready table.
 
 Table 1. Characteristics of sequenced participants with new diagnoses in NC from 2018-2021.
-
 
 ```{r}
 
@@ -122,8 +152,7 @@ tableby(ngscollectyr ~ recent_cat + gender + racecat + age_cat30 + risk2 + ownin
 
 ```
 
-
-#### 2. Plot TCS number at different regions by recency categories. 
+### 2. Plot TCS number at different regions by recency categories.
 
 ```{r, fig.width = 10, fig.height= 6}
 df_tcs <- dfall %>% select(c(
@@ -159,70 +188,8 @@ p4 <- tcs_chart(df_tcs$TCS_V1V3, "TCS# V1V3")
 
 ```
 
+### 3. Making beautiful phylogenetic trees.
 
-#### 3. Performing logistic regression and plot the values using `ggplot2` and `finalfit`.
+Example Tree 1 ![Example trees 1](./img/msaplot-1.png)
 
-```{r, warning = F}
-library(finalfit)
-
-
-dfall_logic <- dfall %>% filter(dx_ngs_cat=="<30 days" & recent_cat!="Indeterminant" ) %>% 
-                            mutate(Recenct_Infection = ifelse(recent_cat == "Recent", 1, 0), 
-                                   ngscollectyr = as.factor(ngscollectyr),
-                                   Age = ifelse(age_cat30 == "Yes", "≤30 y/o", ">30 y/o"),
-                                   Age = as.factor(Age),
-                                   gender = ifelse(gender == "Male", "M", gender),
-                                   gender = ifelse(gender == "Female", "F", gender),
-                                   gender = ifelse(gender == "Transgender Female", "Trans. F", gender),
-                                   gender = ifelse(gender == "Transgender Male", "Trans. M", gender),
-                                   gender = relevel(as.factor(gender), ref = "M"),
-                                   owning_jd_region_fsu = as.factor(owning_jd_region_fsu),
-                                   incluster = as.factor(incluster),
-                                   Recenct_Infection = as.factor(Recenct_Infection)
-                                   )
-
-
-names(dfall_logic)[names(dfall_logic) == "owning_jd_region_fsu"] <- "Region"
-names(dfall_logic)[names(dfall_logic) == "ngscollectyr"] <- "Year"
-names(dfall_logic)[names(dfall_logic) == "gender"] <- "Gender"
-names(dfall_logic)[names(dfall_logic) == "racecat"] <- "Race"
-names(dfall_logic)[names(dfall_logic) == "incluster"] <- "Cluster"
-
-dfall_logic <- dfall_logic %>% select(Race, Gender, Age, Year, Region, Cluster, Recenct_Infection)
-
-explanatory = c("Race", "Gender", "Age", "Year", "Region", "Cluster")
-
-dfall_logic %>% 
-  remove_labels() %>% 
-  ggpairs(columns = explanatory)
-
-dependent = "Recenct_Infection"
-dfall_logic %>%
-  finalfit(dependent, explanatory, metrics=TRUE) -> t2
-t2 %>% knitr::kable()
-
-
-dfall_logic %>% 
-  or_plot(dependent, explanatory,
-          table_text_size=3.5, 
-          title_text_size=14,
-          dependent_label = "Recent Infection",
-          #breaks = c(0.1,0.5,1,2,3,4,5,6),
-          column_space = c(-0.5, 0, 0.5),
-          plot_opts=list(xlab("OR, 95% CI"), 
-                         theme(axis.title = element_text(size=12),
-                               legend.position = "right",
-                               legend.title = element_blank(),
-                               legend.justification = c("right", "top")
-                               ))) # + guide_legend(title="my awesome title")
-```
-
-#### 4. Making beautiful phylogenetic trees. 
-
-Example Tree 1
-![Example trees 1](./img/msaplot-1.png)
-
-
-Example Tree 2
-![Example tree 2](./img/treeandleaf.png)
-
+Example Tree 2 ![Example tree 2](./img/tree2.png)

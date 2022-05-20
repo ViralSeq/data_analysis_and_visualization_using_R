@@ -16,85 +16,87 @@ knitr::opts_chunk$set(echo = T, results = "asis", warning = F, message = F)
 
 ## Syllabus
 
-+---------------------------+------------------------------------------------------+
-| Week                      | Topic                                                |
-+===========================+======================================================+
-| 1                         | -   Syllabus review.                                 |
-|                           |                                                      |
-|                           | -   Installation of R and RStudio. Manage packages.  |
-|                           |                                                      |
-|                           | -   Introduction of Github.                          |
-|                           |                                                      |
-|                           | -   Set up project                                   |
-+---------------------------+------------------------------------------------------+
-| 2                         | -   R Basics                                         |
-+---------------------------+------------------------------------------------------+
-| 3                         | -   Summarizing data                                 |
-|                           |                                                      |
-|                           | -   Generate publication-ready table using `tableby` |
-+---------------------------+------------------------------------------------------+
-| 4                         | Plotting using R, basics                             |
-|                           |                                                      |
-|                           | -   Anatomy of \`ggplot\`                            |
-|                           |                                                      |
-|                           | -   Scatter plots                                    |
-|                           |                                                      |
-|                           | -   Line plots                                       |
-|                           |                                                      |
-|                           | -   Bar plots                                        |
-|                           |                                                      |
-|                           | -   Histograms                                       |
-|                           |                                                      |
-|                           | -   Multiple `geoms`, multiple `aes()`               |
-+---------------------------+------------------------------------------------------+
-| 5                         | Plotting with R, tuning plots                        |
-|                           |                                                      |
-|                           | -   Scales                                           |
-|                           |                                                      |
-|                           | -   Colors                                           |
-|                           |                                                      |
-|                           | -   Titles and labels                                |
-|                           |                                                      |
-|                           | -   Themes                                           |
-|                           |                                                      |
-|                           | -   Save your plot                                   |
-+---------------------------+------------------------------------------------------+
-| 6                         | Plotting Phylogenetic trees with R                   |
-|                           |                                                      |
-|                           | -   Basic of phylogenetic tree                       |
-|                           |                                                      |
-|                           | -   Packages to manage trees in R                    |
-|                           |                                                      |
-|                           | -   Loading phylogenetic tree in R                   |
-|                           |                                                      |
-|                           | -   Plot tree using `ggtree`                         |
-+---------------------------+------------------------------------------------------+
-| 7                         | Plotting Phylogenetic trees with R                   |
-|                           |                                                      |
-|                           | -   Link tree with data                              |
-|                           |                                                      |
-|                           | -   Plot tree with data                              |
-|                           |                                                      |
-|                           | -   Visual exploration of phylogentic trees          |
-+---------------------------+------------------------------------------------------+
-| 8                         | Data analysis - Continuous data                      |
-+---------------------------+------------------------------------------------------+
-| 9                         | Data analysis - Linear regression                    |
-+---------------------------+------------------------------------------------------+
-| 10                        | Data analysis - Categorical data                     |
-+---------------------------+------------------------------------------------------+
-| 11                        | Data analysis - Logistic regression                  |
-+---------------------------+------------------------------------------------------+
-| 12                        | Data analysis - Time-to-event data and survival      |
-+---------------------------+------------------------------------------------------+
-
++-----------------------+------------------------------------------------------+
+| Week                  | Topic                                                |
++=======================+======================================================+
+| 1                     | -   Syllabus review.                                 |
+|                       |                                                      |
+|                       | -   Installation of R and RStudio. Manage packages.  |
+|                       |                                                      |
+|                       | -   Introduction of Github.                          |
+|                       |                                                      |
+|                       | -   Set up project                                   |
++-----------------------+------------------------------------------------------+
+| 2                     | -   R Basics                                         |
++-----------------------+------------------------------------------------------+
+| 3                     | -   Summarizing data                                 |
+|                       |                                                      |
+|                       | -   Generate publication-ready table using `tableby` |
++-----------------------+------------------------------------------------------+
+| 4                     | Plotting using R, basics                             |
+|                       |                                                      |
+|                       | -   Anatomy of \`ggplot\`                            |
+|                       |                                                      |
+|                       | -   Scatter plots                                    |
+|                       |                                                      |
+|                       | -   Line plots                                       |
+|                       |                                                      |
+|                       | -   Bar plots                                        |
+|                       |                                                      |
+|                       | -   Histograms                                       |
+|                       |                                                      |
+|                       | -   Multiple `geoms`, multiple `aes()`               |
++-----------------------+------------------------------------------------------+
+| 5                     | Plotting with R, tuning plots                        |
+|                       |                                                      |
+|                       | -   Scales                                           |
+|                       |                                                      |
+|                       | -   Colors                                           |
+|                       |                                                      |
+|                       | -   Titles and labels                                |
+|                       |                                                      |
+|                       | -   Themes                                           |
+|                       |                                                      |
+|                       | -   Save your plot                                   |
++-----------------------+------------------------------------------------------+
+| 6                     | Plotting Phylogenetic trees with R                   |
+|                       |                                                      |
+|                       | -   Basic of phylogenetic tree                       |
+|                       |                                                      |
+|                       | -   Packages to manage trees in R                    |
+|                       |                                                      |
+|                       | -   Loading phylogenetic tree in R                   |
+|                       |                                                      |
+|                       | -   Plot tree using `ggtree`                         |
++-----------------------+------------------------------------------------------+
+| 7                     | Plotting Phylogenetic trees with R                   |
+|                       |                                                      |
+|                       | -   Link tree with data                              |
+|                       |                                                      |
+|                       | -   Plot tree with data                              |
+|                       |                                                      |
+|                       | -   Visual exploration of phylogentic trees          |
++-----------------------+------------------------------------------------------+
+| 8                     | Data analysis - Continuous data                      |
++-----------------------+------------------------------------------------------+
+| 9                     | Data analysis - Linear regression                    |
++-----------------------+------------------------------------------------------+
+| 10                    | Data analysis - Categorical data                     |
++-----------------------+------------------------------------------------------+
+| 11                    | Data analysis - Logistic regression                  |
++-----------------------+------------------------------------------------------+
+| 12                    | Data analysis - Time-to-event data and survival      |
++-----------------------+------------------------------------------------------+
+| 13                    | Visualize RNA-seq data, part 1                       |
++-----------------------+------------------------------------------------------+
+| 14                    | Visualize RNA-seq data, part 2                       |
++-----------------------+------------------------------------------------------+
 
 ## What is unique in this class?
 
 -   Using real biomedical data and cases as examples
 -   Use the latest packages and features
 -   Publication-ready graphics and tables
-
 
 ## Examples
 
@@ -110,7 +112,6 @@ library(arsenal)
 library(patchwork)
 library(GGally)
 ```
-
 
 Load data from a `csv` file.
 

@@ -1,0 +1,332 @@
+---
+title: "Working with categorical outcome variables"
+output:
+  html_document:
+    df_print: tibble
+    toc: true
+    toc_float: true
+    theme: sandstone
+    highlight: haddock
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, warning = F, message = F)
+
+```
+
+## Sync your Repo
+
+-   Open GitHub Desktop
+-   Click "Current Branch" (should be "Main")
+-   You will see a branch of "upstream/main". Select branch "Main", click "Choose a branch to Merge into **Main**".
+-   Choose "upstream/main", merge into your own "Main". After merging, click "Push Origin".
+
+
+## Factor
+
+We said earlier that continuous data can be measured and categorical data can be counted, which is useful to remember. Categorical data can be a:
+
+-   Factor
+    -   a fixed set of names/strings or numbers
+    -   these may have an inherent order (1st, 2nd 3rd) - ordinal factor
+    -   or may not (female, male)
+-   Character
+    -   sequences of letters, numbers, or symbols
+-   Logical (Boolean)
+    -   containing only TRUE or FALSE
+    
+Many biomedical research data are factors. Whether it is outcomes like death, recurrence, or readmission. Or predictors like disease stage, or smoking status. It is essential to be comfortable manipulating factors and dealing with outcomes which are categorical. 
+
+## The Question
+
+We will use the classic “Survival from Malignant Melanoma” dataset which is included in the **boot** package. 
+The data consist of measurements made on patients with malignant melanoma, a type of skin cancer. 
+Each patient had their tumor removed by surgery at the Department of Plastic Surgery, University Hospital of Odense, Denmark, between 1962 and 1977.
+
+
+## Get the data
+
+The Help page (F1 on `boot::melanoma`) gives us its data dictionary including the definition of each variable and the coding used.
+
+```{r, message = F}
+meldata <- boot::melanoma
+```
+
+## Check the data
+As always, check any new dataset carefully before you start analysis.  
+
+```{r, message = F}
+library(tidyverse)
+library(finalfit)
+library(arsenal)
+library(patchwork)
+library(ggsci)
+theme_set(theme_bw())
+
+meldata %>% ff_glimpse()
+```
+
+As can be seen, all of the variables are currently coded as continuous/numeric.
+The `<dbl>` stands for 'double', meaning numeric which comes from 'double-precision floating point'.
+
+
+## Recode the data {#chap08-recode}
+
+It is really important that variables are correctly coded for all plotting and analysis functions. 
+Using the data dictionary, we will convert the categorical variables to factors. 
+
+In the section below, we convert the continuous variables to `factors` (e.g., `sex %>% factor() %>% `), then use the **forcats** package (included in **tidyverse**) to recode the factor levels. 
+
+
+```{r}
+meldata <- meldata %>% 
+  mutate(sex.factor =             # Make new variable  
+           sex %>%                # from existing variable
+           factor() %>%           # convert to factor
+           fct_recode(            # forcats function
+             "Female" = "0",      # new on left, old on right
+             "Male"   = "1"),
+
+         # same thing but more condensed code:
+         ulcer.factor = factor(ulcer) %>% 
+           fct_recode("Present" = "1",
+                      "Absent"  = "0"),
+         
+         status.factor = factor(status) %>% 
+           fct_recode("Died melanoma"       = "1",
+                      "Alive"               = "2",
+                      "Died - other causes" = "3"))
+
+labels(meldata) <- c(
+  sex.factor = "Sex",
+  ulcer.factor = "Ulcerated tumour",
+  status.factor = "Status"
+)
+
+```
+
+## Should I convert a continuous variable to a categorical variable?
+
+This is a common question and something which is frequently done. 
+Take for instance the variable age. 
+Is it better to leave it as a continuous variable, or to chop it into categories, e.g., 30 to 39 etc.?
+
+Answer:
+
+-   Do not do it unless you have to. Plot and understand the continuous variable first. 
+-   If you do it, try not to throw away too much information. 
+-   Repeat your analyses both with the continuous data and categorical data to ensure there is no difference in the conclusion (often called a sensitivity analysis). 
+
+```{r fig.height=3, fig.width=4, warning=FALSE}
+# Summary of age
+meldata$age %>% 
+  summary()
+
+meldata %>% 
+  ggplot(aes(x = age)) + 
+  geom_histogram()
+```
+
+There are different ways in which a continuous variable can be converted to a factor. 
+You may wish to create a number of intervals of equal length. 
+The `cut()` function can be used for this. 
+
+Using the cut function, a continuous variable can be converted to a categorical one:
+
+```{r}
+meldata <- meldata %>% 
+  mutate(
+    age.factor = 
+      age %>%
+      cut(breaks = c(4,20,40,60,95), include.lowest = TRUE) %>% 
+      fct_recode(
+        "≤20"      =  "[4,20]",
+        "21 to 40" = "(20,40]",
+        "41 to 60" = "(40,60]",
+        ">60"      = "(60,95]"
+      )
+  )
+
+labels(meldata) = c(age.factor = "Age (years)")
+
+```
+
+
+## Plot the data
+
+We are interested in the association between tumor ulceration and death from melanoma. 
+To start then, we simply count the number of patients with ulcerated tumors who died. 
+It is useful to plot this as counts but also as proportions. 
+It is proportions you are comparing, but you really want to know the absolute numbers as well.
+
+```{r, fig.width=7, fig.height=3, fig.cap="Bar chart: Outcome after surgery for patients with ulcerated melanoma."}
+p1 <- meldata %>% 
+  ggplot(aes(x = ulcer.factor, fill = status.factor)) + 
+  geom_bar() + 
+  theme(legend.position = "none") + 
+  scale_fill_nejm()
+
+p2 <- meldata %>% 
+  ggplot(aes(x = ulcer.factor, fill = status.factor)) + 
+  geom_bar(position = "fill") + 
+  ylab("proportion") + 
+  scale_fill_nejm()
+
+p1 + p2
+```
+
+It should be obvious that more died from melanoma in the ulcerated tumour group compared with the non-ulcerated tumor group. 
+
+We may also be interested in exploring potential effect modification, interactions and confounders.
+
+```{r, fig.width=6, fig.height=6, fig.cap="Facetted bar plot: Outcome after surgery for patients with ulcerated melanoma aggregated by sex and age."}
+p1 <- meldata %>% 
+  ggplot(aes(x = ulcer.factor, fill=status.factor)) + 
+  geom_bar() +
+  facet_grid(sex.factor ~ age.factor) + 
+  theme(legend.position = "none") +
+  scale_fill_nejm()
+
+p2 <- meldata %>% 
+  ggplot(aes(x = ulcer.factor, fill=status.factor)) + 
+  geom_bar(position = 'fill') +
+  facet_grid(sex.factor ~ age.factor)+ 
+  theme(legend.position = "bottom") + 
+  scale_fill_nejm()
+
+p1 / p2
+```
+
+## Group factor levels together - `fct_collapse()`
+
+Our question relates to the association between tumor ulceration and death from melanoma. 
+The outcome measure has three levels as can be seen. 
+For our purposes here, we will generate a disease-specific mortality variable (`status_dss`), by combining "Died - other causes" and "Alive". 
+
+```{r}
+meldata <- meldata %>%
+  mutate(
+    status_dss = fct_collapse(
+      status.factor,
+      "Alive" = c("Alive", "Died - other causes"))
+  )
+```
+
+## Change the order of values within a factor - `fct_relevel()` 
+
+The default order for levels with `factor()` is alphabetical. 
+We often want to reorder the levels in a factor when plotting, or when performing a regression analysis and we want to specify the reference level.  
+
+The order can be checked using `levels()`.
+
+```{r}
+# dss - disease specific survival
+meldata$status_dss %>% levels()
+```
+
+The reason "Alive" is second, rather than alphabetical, is it was recoded from "2" and that order was retained.
+If, however, we want to make comparisons relative to "Alive", we need to move it to the front by using `fct_relevel()`.
+
+```{r}
+meldata <- meldata %>% 
+  mutate(status_dss = status_dss %>%
+           fct_relevel("Alive")
+         )
+```
+
+Any number of factor levels can be specified in `fct_relevel()`. 
+
+## Summarize with `tableby`
+
+`tableby` from package **arsenal** provides an easy way to summarize data. 
+
+```{r,  results = 'asis'}
+
+tab = tableby(ulcer.factor ~ status_dss, data = meldata, test = F)
+summary(tab)
+```
+
+
+## Pearson's chi-squared and Fisher's exact tests
+
+Pearson's chi-squared ($\chi^2$) test of independence is used to determine whether two categorical variables are independent in a given population.
+Independence here means that the relative frequencies of one variable are the same over all levels of another variable.
+
+A common setting for this is the classic 2x2 table. 
+
+The null hypothesis of independence for this particular question is no difference in the proportion of patients with ulcerated tumors who die (45.6%) compared with non-ulcerated tumors (13.9%).
+From the raw frequencies, there seems to be a large difference, as we noted in the plot we made above. 
+
+### Base R
+
+Base R has reliable functions for all common statistical tests, but they are sometimes a little inconvenient to extract results from.
+
+
+Similarly, the counts table can be passed to `chisq.test()` to perform the chi-squared test. 
+```{r}
+tab = table(meldata$ulcer.factor, meldata$status_dss)
+tab
+tab %>%  chisq.test()
+```
+
+
+The result can be extracted into a tibble using the `tidy()` function from the **broom** package. 
+```{r}
+library(broom)
+tab %>%  chisq.test() %>% tidy()
+```
+
+The `chisq.test()` function applies the Yates' continuity correction by default. 
+The standard interpretation assumes that the discrete probability of observed counts in the table can be approximated by the continuous chi-squared distribution. 
+This introduces some error. 
+The correction involves subtracting 0.5 from the absolute difference between each observed and expected value. 
+This is particularly helpful when counts are low, but can be removed if desired by `chisq.test(..., correct = FALSE)`.
+
+## Fisher's exact test
+
+A commonly stated assumption of the chi-squared test is the requirement to have an expected count of at least 5 in each cell of the 2x2 table. 
+For larger tables, all expected counts should be $>1$ and no more than 20% of all cells should have expected counts $<5$.
+If this assumption is not fulfilled, an alternative test is Fisher's exact test. 
+For instance, if we are testing across a 2x4 table created from our `age.factor` variable and `status_dss`, we should use Fisher's exact test. 
+
+```{r}
+tab = table(meldata$age.factor, meldata$status_dss)
+tab
+```
+
+
+```{r}
+tab %>% 
+  fisher.test()
+```
+
+## Using `tableby` to summerize data and perform statisitcal analysis 
+
+Best practice. 
+
+To control what statistical comparison, we can simply name the method before the variable names (with `()`). Not restricted to categorical variables. 
+
+anova: analysis of variance test; the default test for continuous variables. When LHS variable has two levels, equivalent to two-sample t-test.
+
+-   kwt: Kruskal-Wallis Rank Test, optional test for continuous variables. When LHS variable has two levels, equivalent to Wilcoxon test.
+
+-   wt: An explicit Wilcoxon test.
+
+-   medtest: A median test.
+
+-   chisq: chi-square goodness of fit test for equal counts of a categorical variable across categories; the default for categorical or factor variables
+
+-   fe: Fisher's exact test for categorical variables
+
+-   trend: trend test for equal distribution of an ordered variable across a categorical variable; the default for ordered factor variables
+
+-   logrank: log-rank, the default for time-to-event variables
+
+-   notest: no test is performed.
+
+```{r,  results = 'asis'}
+tab.test <- tableby(ulcer.factor ~ status_dss + fe(age.factor), data = meldata)
+summary(tab.test)
+```
+

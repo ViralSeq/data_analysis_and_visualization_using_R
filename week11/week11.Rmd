@@ -71,7 +71,7 @@ As can be seen, all of the variables are currently coded as continuous/numeric.
 The `<dbl>` stands for 'double', meaning numeric which comes from 'double-precision floating point'.
 
 
-## Recode the data {#chap08-recode}
+## Recode the data
 
 It is really important that variables are correctly coded for all plotting and analysis functions. 
 Using the data dictionary, we will convert the categorical variables to factors. 
